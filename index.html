@@ -220,6 +220,10 @@ details.part summary h3{font-size:17px;word-break:break-word}
 .mcard a{color:var(--accent);word-break:break-all;font-size:14px}
 .btnrow{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 .formcard{margin-bottom:12px}
+.au{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.au i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.meta .au{font-size:13px;margin-right:2px}
+.ausel:invalid{color:var(--field-ph)}
 .notice-item .meta{margin:0 0 4px}
 .notice-item .ntext{margin:0;font-size:16px;white-space:pre-wrap;word-break:break-word;padding-right:40px}
 .tag.ncat-0{color:#0A0F2C;background:#FFFFFF;border-color:#FFFFFF}
@@ -358,7 +362,10 @@ details.part summary h3{font-size:17px;word-break:break-word}
     <p class="lead">사진은 구글 드라이브 폴더에, 설명과 링크는 여기에</p>
     <div class="linkbox" data-link="drive" data-label="구글 드라이브 자료 폴더 열기" data-ph="드라이브 폴더 링크 붙여넣기"></div>
     <form data-col="design">
-      <input name="title" placeholder="제목 (예: 앵콜 의상 별자리 패턴)" required maxlength="80">
+      <div class="row">
+        <input name="title" placeholder="제목 (예: 앵콜 의상 별자리 패턴)" required maxlength="80">
+        <select name="author" class="ausel" required><option value="">작성자</option><option value="irin">❤️ 아이린</option><option value="hane">🧡 하네</option><option value="remi">🩵 레미</option><option value="sena">🤍 세나</option></select>
+      </div>
       <div class="row">
         <select name="kind"><option>의상</option><option>무대</option><option>굿즈</option><option>SNS</option><option>헤어·메이크업</option><option>기타</option></select>
         <input name="url" type="text" inputmode="url" autocapitalize="off" placeholder="링크 (선택)">
@@ -386,6 +393,7 @@ details.part summary h3{font-size:17px;word-break:break-word}
         <select name="kind"><option>커버 후보</option><option>안무 참고</option><option>분위기 참고</option><option>기타</option></select>
         <input name="url" type="text" inputmode="url" autocapitalize="off" placeholder="링크 (선택)">
       </div>
+      <select name="author" class="ausel" required><option value="">작성자</option><option value="irin">❤️ 아이린</option><option value="hane">🧡 하네</option><option value="remi">🩵 레미</option><option value="sena">🤍 세나</option></select>
       <textarea name="note" placeholder="메모 (선택)" maxlength="1000"></textarea>
       <button class="submit">올리기</button>
     </form>
@@ -775,6 +783,12 @@ buildFilter("design", kindOpts("design"));
 buildFilter("songs", kindOpts("songs"));
 buildFilter("regs", [{v:"전체",label:"전체"},{v:"공지",label:"공지"},{v:"레귤레이션",label:"레귤레이션"}]);
 
+/* 작성자 */
+const auTag = k => { if (!M[k]) return null; const s = el("span","au"), i = el("i"); i.style.background = `var(${M[k].c})`; s.append(i, M[k].name); return s; };
+function auSelect(val){ const sel = el("select"); sel.className = "ausel"; [["","작성자"], ...KEYS.map(k => [k, `${M[k].heart} ${M[k].name}`])].forEach(([v,l]) => { const o = el("option",null,l); o.value = v; o.selected = v === (val || ""); sel.append(o); }); return sel; }
+const lastAu = lsGet("orbitte-author");
+document.querySelectorAll("select.ausel[name=author]").forEach(sel => { if (M[lastAu]) sel.value = lastAu; sel.addEventListener("change", () => { if (M[sel.value]) { lsSet("orbitte-author", sel.value); document.querySelectorAll("select.ausel[name=author]").forEach(o => { if (!o.value) o.value = sel.value; }); } }); });
+
 /* 디자인 · 곡 */
 const imgSrc = (id, w) => `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w${w}`;
 function driveImg(id, w, alt){
@@ -813,6 +827,7 @@ function renderDesign(){
     if (imgs.length) { cv.append(driveImg(imgs[0], 600, r.title)); if (imgs.length > 1) cv.append(el("span","dcount",`+${imgs.length-1}`)); }
     else cv.append(el("span",null,r.title));
     const info = el("div","dinfo"); info.append(el("h3",null,r.title));
+    const at = auTag(r.author); if (at) info.append(at);
     const meta = el("div","meta"); meta.append(el("span","tag",r.kind), likeBtn("design", r)); info.append(meta);
     card.append(cv, info);
     card.onclick = () => openLB(r);
@@ -833,7 +848,7 @@ function openLB(r){
   imgs.forEach(id => { const a = el("a"); a.href = `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`; a.target = "_blank"; a.rel = "noopener noreferrer"; a.append(driveImg(id, 1400, r.title)); wrap.append(a); });
   const info = $("#lbInfo"); info.innerHTML = "";
   info.append(el("h3",null,r.title));
-  const meta = el("div","meta"); meta.append(el("span","tag",r.kind), fmtDate(r.createdAt)); if (imgs.length > 1) meta.append(`  사진 ${imgs.length}장, 옆으로 넘기기`); info.append(meta);
+  const meta = el("div","meta"); meta.append(el("span","tag",r.kind)); const la = auTag(r.author); if (la) meta.append(la, "  "); meta.append(fmtDate(r.createdAt)); if (imgs.length > 1) meta.append(`  사진 ${imgs.length}장, 옆으로 넘기기`); info.append(meta);
   if (r.note) info.append(el("p",null,r.note));
   linkOrText(info, r.url);
   const acts = el("div","lbacts"); acts.append(likeBtn("design", r));
@@ -851,6 +866,7 @@ function editLB(r){
   const wrap = $("#lbImgs"); wrap.hidden = true;
   const t = el("input"); t.value = r.title; t.maxLength = 80; t.placeholder = "제목";
   const k = el("select"); [...document.querySelectorAll('form[data-col="design"] select[name="kind"] option')].forEach(o => { const op = el("option",null,o.value); op.selected = o.value === r.kind; k.append(op); });
+  const au = auSelect(r.author);
   const u = el("input"); u.value = r.url || ""; u.placeholder = "링크 (선택)"; u.inputMode = "url"; u.autocapitalize = "off";
   const n = el("textarea"); n.value = r.note || ""; n.placeholder = "메모 (선택)"; n.maxLength = 1000;
   const ph = el("div","editphotos");
@@ -869,13 +885,14 @@ function editLB(r){
     const add = [...(pin.files || [])].slice(0, Math.max(0, 4 - imgs.length));
     s.disabled = true;
     try { for (let i = 0; i < add.length; i++) { s.textContent = `사진 올리는 중 ${i+1}/${add.length}`; imgs.push(await store.upload(add[i])); } }
-    catch(e) { notice("사진 올리기 실패. 잠시 후 다시 시도"); s.disabled = false; s.textContent = "저장"; return; }
-    const patch = {title:t.value.trim(), kind:k.value, url:u.value.trim(), note:n.value.trim(), images:imgs};
+    catch(e) { notice(`사진 올리기 실패 (${e.detail || e.code || e.message || "알 수 없음"})`); s.disabled = false; s.textContent = "저장"; return; }
+    const patch = {title:t.value.trim(), kind:k.value, author:au.value, url:u.value.trim(), note:n.value.trim(), images:imgs};
     store.update("design", r.id, patch).catch(fail);
     notice(""); openLB({...r, ...patch});
   };
   r2.append(c, s);
-  info.append(el("h3",null,"레퍼런스 수정"), t, k, u, n, ph, pick, r2);
+  const kr = el("div","row"); kr.append(k, au);
+  info.append(el("h3",null,"레퍼런스 수정"), t, kr, u, n, ph, pick, r2);
 }
 function closeLB(){ $("#lb").hidden = true; lbId = null; document.body.style.overflow = ""; }
 $("#lbClose").onclick = closeLB;
@@ -899,15 +916,16 @@ function renderRefs(col){
         const k = el("select"); [...document.querySelectorAll('form[data-col="songs"] select[name="kind"] option')].forEach(o => { const op = el("option",null,o.value); op.selected = o.value === r.kind; k.append(op); });
         const u = el("input"); u.value = r.url || ""; u.placeholder = "링크 (선택)"; u.inputMode = "url"; u.autocapitalize = "off";
         const n = el("textarea"); n.value = r.note || ""; n.placeholder = "메모 (선택)"; n.maxLength = 1000;
+        const au = auSelect(r.author);
         const row1 = el("div","row"); row1.append(t, a); const row2 = el("div","row"); row2.append(k, u);
         const br = el("div","btnrow"), c = el("button","textbtn","취소"), s = el("button","submit","저장");
         c.onclick = () => { songEditing.delete(r.id); renderRefs(col); };
-        s.onclick = () => { if (!t.value.trim()) { notice("곡명 입력 필요"); return; } songEditing.delete(r.id); notice(""); store.update(col, r.id, {title:t.value.trim(), artist:a.value.trim(), kind:k.value, url:u.value.trim(), note:n.value.trim()}).catch(fail); };
-        br.append(c, s); it.classList.add("editing"); it.append(row1, row2, n, br); box.append(it); return;
+        s.onclick = () => { if (!t.value.trim()) { notice("곡명 입력 필요"); return; } songEditing.delete(r.id); notice(""); store.update(col, r.id, {title:t.value.trim(), artist:a.value.trim(), kind:k.value, author:au.value, url:u.value.trim(), note:n.value.trim()}).catch(fail); };
+        br.append(c, s); it.classList.add("editing"); it.append(row1, row2, au, n, br); box.append(it); return;
       }
       const h = el("h3",null,r.title);
       if (r.artist) { const a = el("span",null,`  ${r.artist}`); a.style.color = "var(--muted)"; a.style.fontWeight = "400"; h.append(a); }
-      const meta = el("div","meta"); meta.append(el("span","tag",r.kind), `${fmtDate(r.createdAt)}`);
+      const meta = el("div","meta"); meta.append(el("span","tag",r.kind)); const sa = auTag(r.author); if (sa) meta.append(sa, "  "); meta.append(`${fmtDate(r.createdAt)}`);
       it.append(h, meta);
       if (r.note) it.append(el("p",null,r.note));
       linkOrText(it, r.url);
@@ -1128,7 +1146,7 @@ if (langSel) langSel.onchange = () => { $("#lyricsBox").placeholder = langSel.va
 /* 사진 줄이기 + 미리보기 */
 async function shrink(file){
   const url = URL.createObjectURL(file), img = new Image();
-  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+  await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej({code:"이 형식의 사진은 읽을 수 없음 (HEIC면 JPG로 바꿔서)"}); img.src = url; });
   const sc = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
   const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
   c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
@@ -1180,11 +1198,12 @@ document.querySelectorAll("form[data-col]").forEach(f => f.addEventListener("sub
       const btn = f.querySelector(".submit"); btn.disabled = true; row.images = [];
       try {
         for (let i = 0; i < files.length; i++) { btn.textContent = `사진 올리는 중 ${i+1}/${files.length}`; row.images.push(await store.upload(files[i])); }
-      } catch(e) { notice("사진 올리기 실패. 잠시 후 다시 시도"); btn.textContent = "올리기"; updateSubmit(); return; }
+      } catch(e) { notice(`사진 올리기 실패 (${e.detail || e.code || e.message || "알 수 없음"})`); btn.textContent = "올리기"; updateSubmit(); return; }
       btn.textContent = "올리기"; updateSubmit();
     }
   }
   notice(""); f.reset(); if (col === "design") showPrev();
+  f.querySelectorAll("select.ausel").forEach(sel => { const v = lsGet("orbitte-author"); if (M[v]) sel.value = v; });
   store.add(col, row).catch(e => notice(e?.code === "quota_exceeded" ? "저장 공간 가득 참. 오래된 항목 삭제 필요" : "저장 실패. 잠시 후 다시 시도"));
 }));
 
@@ -1194,7 +1213,7 @@ function makeSheetStore(){
   let queue = Promise.resolve(), pending = 0;
   const post = async body => {
     const r = await fetch(API, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({...body, key:teamKey})});
-    const j = await r.json(); if (!j.ok) throw {code:j.error || "error"}; return j;
+    let j; try { j = await r.json(); } catch(e) { throw {code:"서버 응답 오류"}; } if (!j.ok) throw {code:j.error || "error", detail:j.detail}; return j;
   };
   const apply = j => {
     COLS.forEach(c => data[c] = sortCol(c, j[c] || []));
