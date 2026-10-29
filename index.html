@@ -25,6 +25,7 @@
   --sky:#0D1230; --sky-2:#1A2258; --sky-ink:#E9EBF7; --sky-muted:#A4ABD3; --sky-orbit:#3D4788;
   --sky-irin:#FF6B81; --sky-hane:#FFA45C; --sky-remi:#9BDDF7; --sky-sena:#F6F3FF;
   --bar:rgba(10,15,44,.86);
+  --chorus:#C9A8FF;
   --chrome:linear-gradient(176deg,#FFFFFF 0%,#E4E9F8 34%,#8F9CCB 50%,#F4F6FC 66%,#B7C2E6 100%);
   color-scheme:dark;
   box-sizing:border-box;
@@ -64,17 +65,19 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* sky */
 .sky{position:relative;background:radial-gradient(120% 90% at 50% 40%,var(--sky-2),var(--sky));border:1px solid var(--line);color:var(--sky-ink);border-radius:28px;overflow:hidden;padding:8px 8px 22px}
 .sky svg{display:block;width:100%;height:auto}
-.wordmark{font-size:clamp(48px,13.5vw,74px);line-height:1;text-align:center;margin-top:-8px}
+.orbitwrap{position:relative}
+.wordmark{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);font-size:clamp(54px,16vw,88px);line-height:1;text-align:center;pointer-events:none}
+.subtitle-note{text-align:center;font-size:14px;color:var(--sky-muted);margin-top:-4px}
 .wm{position:relative;display:inline-block;font-family:"Milesdane","Playfair Display",Georgia,serif;font-style:normal;font-weight:400;letter-spacing:.01em;padding:0 .12em;background:var(--chrome);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px rgba(120,150,255,.4))}
 .spark{position:absolute;color:#AFC4FF;font-style:normal;line-height:1;filter:drop-shadow(0 0 6px #6F8BFF);-webkit-text-fill-color:#CFDBFF}
 .spark.a{top:-.05em;right:-.18em;font-size:.34em}
 .spark.b{bottom:.12em;left:-.22em;font-size:.22em}
 .wordmark small{display:block;line-height:1.4;font-family:inherit;font-size:14px;letter-spacing:0;color:var(--sky-muted);margin-top:10px}
-.dates{display:flex;justify-content:center;gap:24px;margin-top:14px;font-size:14px;color:var(--sky-muted)}
-.dates b{display:block;color:var(--sky-ink);font-weight:400;font-size:15px}
 .members{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:18px;padding:0 8px}
 .mem{text-align:center;font-size:13px;color:var(--sky-muted);line-height:1.4}
 .mem .nm{display:block;font-size:15px;color:var(--sky-ink)}
+.mem .em,.mem .bd{display:block}
+.mem .em{font-size:16px;margin:2px 0}
 .mem .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:1px}
 
 /* nav */
@@ -126,13 +129,6 @@ input:disabled,select:disabled,textarea:disabled{opacity:.6}
 @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.keycard{animation:none}}
 #keyMsg{color:var(--danger);font-size:14px}
-/* links */
-.linkbox{margin:0 0 14px}
-.golink{display:flex;align-items:center;justify-content:center;background:var(--accent);color:var(--accent-ink);text-decoration:none;border-radius:14px;padding:12px;font-size:16px}
-.chg{border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;display:block;margin:6px auto 0}
-.linkrow{display:flex;gap:8px}
-.linkrow input{flex:1;min-width:0}
-.linkrow .submit{flex:none}
 
 /* setlist */
 .setlist{background:var(--surface);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:20px;padding:14px 14px 10px;margin-top:16px}
@@ -179,7 +175,8 @@ input:disabled,select:disabled,textarea:disabled{opacity:.6}
 .setlist.viewing li.none::before{content:none}
 .setlist.viewing .settoggle{justify-content:center;margin-top:8px}
 .setlist .saved{font-size:12px;color:var(--muted);text-align:right;min-height:18px;margin-top:4px}
-.notice{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--danger);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:16px;display:none}
+.notice{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translate(-50%,20px);z-index:60;max-width:min(92vw,420px);width:max-content;background:#FFFFFF;color:#0A0F2C;border-radius:14px;padding:11px 16px;font-size:14px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center}
+.notice.show{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 .textbtn{border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 4px;text-decoration:underline;text-underline-offset:3px}
 /* parts */
@@ -195,11 +192,8 @@ details.part summary h3{font-size:17px;word-break:break-word}
 .line .t{flex:1;min-width:0;word-break:break-word;font-size:15px}
 .line .t .main{display:block}
 .line .t .sub{display:block;font-size:13px;opacity:.72;margin-top:1px}
-.line .t.multi{-webkit-background-clip:text;background-clip:text;color:transparent}
-.line .t.multi .sub{opacity:.8}
 .lines.ja .line{padding:9px 0}
 .artist{display:block;font-size:13px;font-weight:400;color:var(--muted);margin-top:1px}
-.langtag{display:inline-block;font-size:11px;font-weight:400;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-left:8px;color:var(--muted);vertical-align:2px}
 .partfoot .submit{padding:6px 14px;font-size:14px}
 .ws{display:flex;gap:5px;flex:none}
 .wbtn{width:24px;height:24px;border-radius:50%;border:2px solid var(--c);background:transparent;cursor:pointer;padding:0}
@@ -220,6 +214,22 @@ details.part summary h3{font-size:17px;word-break:break-word}
 .mcard a{color:var(--accent);word-break:break-all;font-size:14px}
 .btnrow{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 .formcard{margin-bottom:12px}
+.opener{display:block;width:100%;border:1px dashed var(--line);background:rgba(24,31,78,.5);color:var(--ink);border-radius:14px;padding:12px;font-size:15px;cursor:pointer;margin-bottom:14px}
+.opener[hidden]{display:none}
+.opener:disabled{opacity:.5;cursor:default}
+form[hidden]{display:none}
+.formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
+.au b{font-weight:500}
+.cdots{display:inline-flex;gap:3px;margin-left:5px;vertical-align:1px}
+.cdots i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.line .t .main,.line .t .sub{display:block}
+.segrow{padding:4px 0 4px 14px !important;border-bottom:0 !important}
+.segrow .segname{font-size:13px;color:var(--muted)}
+.subtitle{display:block;font-size:14px;font-weight:400;color:var(--ink);opacity:.85;margin-top:1px}
+.setlist li.need .seg{border-color:var(--danger)}
+.setlist.viewing li.song{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:background .15s}
+.setlist li.song.dragging{background:rgba(185,192,245,.14);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.reohint{justify-content:center !important;font-size:12px;color:var(--muted)}
 .au{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
 .au i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .meta .au{font-size:13px;margin-right:2px}
@@ -272,8 +282,17 @@ details.part summary h3{font-size:17px;word-break:break-word}
 .lb[hidden]{display:none}
 .lbpanel{width:100%;max-width:560px;max-height:100%;overflow-y:auto;background:#141B46;border:1px solid var(--line);border-radius:20px}
 .lbbar{display:flex;justify-content:flex-end;padding:8px 10px 0}
-.lbimgs{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;padding:8px 12px}
-.lbimgs a{flex:0 0 100%;scroll-snap-align:center;border-radius:12px;overflow:hidden}
+.lbcar{position:relative;margin:8px 12px}
+.lbimgs{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:0;scrollbar-width:none;border-radius:12px}
+.lbimgs::-webkit-scrollbar{display:none}
+.lbimgs a{flex:0 0 100%;scroll-snap-align:center;overflow:hidden}
+.lbarrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:0;background:rgba(10,15,44,.7);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-bottom:3px}
+.lbarrow.prev{left:8px}.lbarrow.next{right:8px}
+.lbarrow:disabled{opacity:.25;cursor:default}
+.lbarrow[hidden],.lbdots[hidden]{display:none}
+.lbdots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:6px;pointer-events:none}
+.lbdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4)}
+.lbdots i.on{background:#fff}
 .lbimgs img{display:block;width:100%;max-height:62vh;object-fit:contain;background:#0A0F2C}
 .lbinfo{padding:6px 16px 16px;display:grid;gap:6px}
 .lbinfo h3{font-size:18px}
@@ -309,12 +328,11 @@ details.part summary h3{font-size:17px;word-break:break-word}
 <div class="wrap">
 
   <header class="sky" aria-label="오르비테">
-    <svg id="orbit" viewBox="0 0 360 230" role="img" aria-label="네 멤버가 각자의 궤도를 도는 그림"></svg>
-    <div class="wordmark"><span class="wm">ORBITte</span><small>🌠 멤버 노트</small></div>
-    <div class="dates">
-      <div>4인 결성<b>2026. 10. 01</b></div>
-      <div>오르비테 탄생<b id="dplus">2026. 10. 19</b></div>
+    <div class="orbitwrap">
+      <svg id="orbit" viewBox="0 0 360 230" role="img" aria-label="네 멤버가 각자의 궤도를 도는 그림"></svg>
+      <div class="wordmark"><span class="wm">ORBITte</span></div>
     </div>
+    <div class="subtitle-note">🌠 멤버 노트</div>
     <div class="members" id="members"></div>
   </header>
 
@@ -327,7 +345,6 @@ details.part summary h3{font-size:17px;word-break:break-word}
     <div id="setInner" hidden>
     <div class="showtabs" id="showTabs"></div>
     <div id="setHead"></div>
-    <p class="lead" id="setLead">공연 곡 순서. 곡명을 적고 "완료"</p>
     <ol id="setlist"></ol>
     <button class="add" id="addSlot">칸 추가</button>
     <div class="saved" id="setSaved"></div>
@@ -335,9 +352,8 @@ details.part summary h3{font-size:17px;word-break:break-word}
     </div>
   </div>
 
-  <div class="linkbox" data-link="timetree" data-label="타임트리에서 팀 일정 보기" data-ph="타임트리 공유 링크 붙여넣기" style="margin-top:16px"></div>
 
-  <div class="notice" id="notice"></div>
+  <div class="notice" id="notice" role="status" aria-live="polite"></div>
   <div class="keybox" id="keyBox" role="dialog" aria-modal="true" aria-labelledby="keyTitle">
     <div class="keycard">
       <div class="keylogo"><span class="wm">ORBITte</span></div>
@@ -359,9 +375,9 @@ details.part summary h3{font-size:17px;word-break:break-word}
 
   <section id="design">
     <h2>디자인 레퍼런스</h2>
-    <p class="lead">사진은 구글 드라이브 폴더에, 설명과 링크는 여기에</p>
-    <div class="linkbox" data-link="drive" data-label="구글 드라이브 자료 폴더 열기" data-ph="드라이브 폴더 링크 붙여넣기"></div>
-    <form data-col="design">
+    <p class="lead">의상, 무대, 굿즈, SNS 참고 사진과 링크</p>
+    <button class="opener" data-open="design" aria-expanded="false">+ 레퍼런스 올리기</button>
+    <form data-col="design" hidden>
       <div class="row">
         <input name="title" placeholder="제목 (예: 앵콜 의상 별자리 패턴)" required maxlength="80">
         <select name="author" class="ausel" required><option value="">작성자</option><option value="irin">❤️ 아이린</option><option value="hane">🧡 하네</option><option value="remi">🩵 레미</option><option value="sena">🤍 세나</option></select>
@@ -383,8 +399,8 @@ details.part summary h3{font-size:17px;word-break:break-word}
   <section id="songs">
     <h2>곡 레퍼런스</h2>
     <p class="lead">커버 후보, 안무 참고, 분위기 참고 곡 모음</p>
-    <div class="linkbox" data-link="drive" data-label="구글 드라이브 자료 폴더 열기" data-ph="드라이브 폴더 링크 붙여넣기"></div>
-    <form data-col="songs">
+    <button class="opener" data-open="songs" aria-expanded="false">+ 곡 올리기</button>
+    <form data-col="songs" hidden>
       <div class="row">
         <input name="title" placeholder="곡명" required maxlength="80">
         <input name="artist" placeholder="아티스트" maxlength="60">
@@ -404,14 +420,18 @@ details.part summary h3{font-size:17px;word-break:break-word}
 
   <section id="parts">
     <h2>파트 나누기</h2>
-    <p class="lead">가사를 붙여넣고 줄마다 멤버 색 선택, 다 고르면 "파트 확정"</p>
-    <form data-col="parts">
+    <p class="lead">가사를 붙여넣고 줄마다 멤버 색 선택, 다 고르면 "파트 확정". 여러 명을 고르면 합창 색으로 표시</p>
+    <button class="opener" data-open="parts" aria-expanded="false">+ 곡 추가</button>
+    <form data-col="parts" hidden>
       <div class="row">
-        <input name="title" placeholder="곡명" required maxlength="80">
-        <input name="artist" placeholder="아티스트" maxlength="60">
+        <input name="title" id="ptTitle" placeholder="곡명 (일본어)" required maxlength="80">
+        <input name="title_ko" id="ptTitleKo" placeholder="곡명 (한국어)" maxlength="80">
       </div>
-      <select name="lang" id="langSel"><option value="ko">한국곡</option><option value="ja">일본곡</option></select>
-      <textarea name="lyrics" id="lyricsBox" placeholder="가사 (한 줄에 한 파트씩)" required maxlength="12000" style="min-height:140px"></textarea>
+      <div class="row">
+        <input name="artist" placeholder="아티스트" maxlength="60">
+        <select name="lang" id="langSel"><option value="ja">일본곡</option><option value="ko">한국곡</option></select>
+      </div>
+      <textarea name="lyrics" id="lyricsBox" placeholder="일본어&#10;뜻&#10;발음&#10;(3줄씩 반복, 한 줄 안에서 파트가 바뀌면 그 자리에 /)" required maxlength="12000" style="min-height:140px"></textarea>
       <button class="submit">곡 추가</button>
     </form>
     <div class="legend" id="legend"></div>
@@ -421,7 +441,8 @@ details.part summary h3{font-size:17px;word-break:break-word}
   <section id="regs">
     <h2>공지</h2>
     <p class="lead">멤버 공지와 정해진 것, 팬 안내용 레귤레이션</p>
-    <form data-col="regs">
+    <button class="opener" data-open="regs" aria-expanded="false">+ 공지 쓰기</button>
+    <form data-col="regs" hidden>
       <select name="cat"><option>공지</option><option>레귤레이션</option></select>
       <textarea name="text" placeholder="내용 (예: 정산 비율 8:2 확정, 2샷 체키 2,000원)" required maxlength="1000"></textarea>
       <button class="submit">올리기</button>
@@ -440,7 +461,7 @@ details.part summary h3{font-size:17px;word-break:break-word}
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="디자인 레퍼런스 보기">
   <div class="lbpanel">
     <div class="lbbar"><button class="textbtn" id="lbClose">닫기</button></div>
-    <div class="lbimgs" id="lbImgs"></div>
+    <div class="lbcar"><div class="lbimgs" id="lbImgs"></div><button class="lbarrow prev" id="lbPrev" aria-label="이전 사진">‹</button><button class="lbarrow next" id="lbNext" aria-label="다음 사진">›</button><div class="lbdots" id="lbDots"></div></div>
     <div class="lbinfo" id="lbInfo"></div>
   </div>
 </div>
@@ -458,7 +479,7 @@ const M = {
 };
 const KEYS = Object.keys(M);
 const COLS = ["design","songs","parts","regs"];
-const KVS = ["setlist","links","profiles"];
+const KVS = ["setlist","profiles"];
 const ASC = new Set(["parts"]);
 const $ = s => document.querySelector(s);
 const el = (t, cls, txt) => { const e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
@@ -468,13 +489,14 @@ const today = new Date(); const TODAY = ymd(today);
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const safeUrl = u => { u = String(u || "").trim(); if (!u) return null; if (/^https?:\/\//i.test(u)) return u; if (/^[^\s:]+\.[^\s]+$/.test(u)) return "https://" + u.replace(/^\/+/,""); return null; };
 const fmtDate = ts => { const d = new Date(ts); return `${d.getMonth()+1}월 ${d.getDate()}일`; };
-const notice = msg => { const n = $("#notice"); n.textContent = msg; n.style.display = msg ? "block" : "none"; };
+let noticeT = null;
+const notice = msg => { const n = $("#notice"); clearTimeout(noticeT); n.textContent = msg; n.classList.toggle("show", !!msg); if (msg) noticeT = setTimeout(() => n.classList.remove("show"), 4000); };
 const lsGet = k => { try { return localStorage.getItem(k); } catch(e) { return null; } };
 const lsSet = (k,v) => { try { localStorage.setItem(k,v); } catch(e) {} };
 
 /* ===== 상태 ===== */
 const data = {design:[],songs:[],parts:[],regs:[]};
-const kv = {setlist:{shows:[]}, links:{}, profiles:{}};
+const kv = {setlist:{shows:[]}, profiles:{}};
 const sortCol = (col, arr) => arr.slice().sort((a,b) => ASC.has(col) ? (a.createdAt||0)-(b.createdAt||0) : (b.createdAt||0)-(a.createdAt||0));
 let store = null, canWrite = true;
 const writable = () => !!store && canWrite;
@@ -491,14 +513,10 @@ function guard(box, fn){
 }
 
 /* ===== 메인 ===== */
-const birth = new Date(2026,9,19);
-const dayDiff = (a,b) => Math.round((new Date(b.getFullYear(),b.getMonth(),b.getDate()) - new Date(a.getFullYear(),a.getMonth(),a.getDate()))/86400000);
-const dp = dayDiff(birth, today) + 1;
-$("#dplus").textContent = dp > 0 ? `2026. 10. 19 (D+${dp})` : "2026. 10. 19";
 
 KEYS.forEach(k => {
   const m = M[k], d = el("div","mem");
-  d.append(el("span","nm",`${m.heart} ${m.name}`), `${m.emoji} ${+m.bd.slice(0,2)}월 ${+m.bd.slice(2)}일`);
+  d.append(el("span","nm",`${m.heart} ${m.name}`), el("span","em",m.emoji), el("span","bd",`${+m.bd.slice(0,2)}월 ${+m.bd.slice(2)}일`));
   $("#members").append(d);
 });
 
@@ -570,7 +588,6 @@ function renderSet(){
     const items = cur ? cur.items : [], filled = items.filter(v => v.n.trim() || v.k === "mc");
     const editing = !!(writable() && cur && (setEditing || !filled.length));
     boxEl.classList.toggle("viewing", !editing);
-    $("#setLead").hidden = !editing;
     $("#addSlot").hidden = !editing; $("#setSaved").hidden = !editing;
     const tg = $("#setToggle");
     tg.hidden = !(writable() && cur);
@@ -584,11 +601,13 @@ function renderSet(){
     if (!editing) {
       if (cur.title || cur.date) head.append(el("div","showhead", [cur.date ? md(cur.date) : "", cur.title].filter(Boolean).join("  ")));
       if (!filled.length) { ol.append(el("li","none","아직 정해진 세트리스트 없음")); return; }
-      filled.forEach(v => {
-        const li = el("li","song" + (v.k === "mc" ? " mc" : "")); li.append(el("span","nm",v.n.trim() || (v.k === "mc" ? "토크" : "")));
+      filled.forEach((v,fi) => {
+        const li = el("li","song" + (v.k === "mc" ? " mc" : "")); li.dataset.i = fi; li.append(el("span","nm",v.n.trim() || (v.k === "mc" ? "토크" : "")));
         if (KIND[v.k]) li.append(el("span","kind " + v.k, KIND[v.k]));
         ol.append(li);
       });
+      enableReorder(ol);
+      if (writable() && filled.length > 1) { const h = el("div","showdel reohint","곡을 꾹 눌러서 끌면 순서 변경"); ol.after(h); }
       return;
     }
     const hr = el("div","showedit"), t = el("input"), d = el("input");
@@ -623,14 +642,62 @@ function saveSet(){
   const out = {shows: shows().map(s => ({id:s.id, title:s.title.trim(), date:s.date, items:s.items.map(v => ({n:v.n.trim(), k:v.k}))}))};
   store.setKV("setlist", out).then(() => $("#setSaved").textContent = "저장됨").catch(() => $("#setSaved").textContent = "저장 실패");
 }
-$("#setToggle").onclick = () => { if (!$("#setBox").classList.contains("viewing")) { setEditing = false; saveSet(); } else setEditing = true; renderSet(); };
+$("#setToggle").onclick = () => {
+  if (!$("#setBox").classList.contains("viewing")) {
+    const c = curShow(), miss = c ? c.items.filter(v => v.n.trim() && !v.k).length : 0;
+    if (miss) {
+      notice(`빨간 칸의 곡은 오리, 커버, MC 중 하나를 골라야 완료 가능 (${miss}곡)`);
+      $("#setlist").querySelectorAll("li").forEach((li,i) => { const v = c.items[i]; li.classList.toggle("need", !!(v && v.n.trim() && !v.k)); });
+      return;
+    }
+    notice(""); setEditing = false; saveSet();
+  } else setEditing = true;
+  renderSet();
+};
 $("#addSlot").onclick = () => { const c = curShow(); if (!c) return; setEditing = true; c.items.push({n:"", k:""}); saveSet(); renderSet(); };
+
+/* 셋리 꾹 눌러 순서 바꾸기 */
+const reo = {timer:null, drag:null, sy:0, ol:null};
+function reoStart(li, y){ clearTimeout(reo.timer); reo.sy = y; reo.ol = li.parentNode; reo.timer = setTimeout(() => { reo.drag = li; li.classList.add("dragging"); reo.ol.classList.add("reordering"); if (navigator.vibrate) navigator.vibrate(15); }, 420); }
+function reoMove(x, y, e){
+  if (!reo.drag) { if (reo.timer && Math.abs(y - reo.sy) > 8) { clearTimeout(reo.timer); reo.timer = null; } return; }
+  if (e.cancelable) e.preventDefault();
+  const over = document.elementFromPoint(x, y)?.closest("li.song");
+  if (!over || over === reo.drag || over.parentNode !== reo.ol) return;
+  const r = over.getBoundingClientRect();
+  reo.ol.insertBefore(reo.drag, y < r.top + r.height/2 ? over : over.nextSibling);
+}
+function reoEnd(){
+  clearTimeout(reo.timer); reo.timer = null;
+  const drag = reo.drag; if (!drag) return;
+  drag.classList.remove("dragging"); reo.ol.classList.remove("reordering");
+  const order = [...reo.ol.querySelectorAll("li.song")].map(l => +l.dataset.i);
+  reo.drag = null;
+  const c = curShow(); if (!c) return;
+  const fi = []; c.items.forEach((v,i) => { if (v.n.trim() || v.k === "mc") fi.push(i); });
+  const rest = c.items.filter((v,i) => !fi.includes(i));
+  const next = order.map(o => c.items[fi[o]]).concat(rest);
+  if (next.some((v,i) => v !== c.items[i])) { c.items = next; saveSet(); }
+  renderSet();
+}
+document.addEventListener("touchmove", e => { if (reo.timer || reo.drag) reoMove(e.touches[0].clientX, e.touches[0].clientY, e); }, {passive:false});
+document.addEventListener("touchend", reoEnd); document.addEventListener("touchcancel", reoEnd);
+document.addEventListener("mousemove", e => { if (reo.timer || reo.drag) reoMove(e.clientX, e.clientY, e); });
+document.addEventListener("mouseup", reoEnd);
+function enableReorder(ol){
+  if (!writable()) return;
+  ol.querySelectorAll("li.song").forEach(li => {
+    li.addEventListener("touchstart", e => reoStart(li, e.touches[0].clientY), {passive:true});
+    li.addEventListener("mousedown", e => { if (e.button === 0) reoStart(li, e.clientY); });
+    li.addEventListener("contextmenu", e => e.preventDefault());
+  });
+}
 
 /* 셋리 이미지 저장 */
 function rr(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 async function exportSet(){
   const cur = curShow(); if (!cur) return;
-  const items = cur.items.filter(v => v.n.trim() || v.k === "mc");
+  const items = cur.items.filter(v => v.n.trim() && v.k !== "mc");
   if (!items.length) return;
   const btn = $("#setImg"); btn.disabled = true; btn.textContent = "만드는 중";
   try {
@@ -706,28 +773,6 @@ async function exportSet(){
 }
 $("#setImg").onclick = exportSet;
 
-/* ===== 링크 버튼 ===== */
-function renderLinks(){
-  document.querySelectorAll(".linkbox").forEach(box => guard(box, () => {
-    const key = box.dataset.link, u = safeUrl(kv.links?.[key]); box.innerHTML = "";
-    if (u && !box.dataset.editing) {
-      const a = el("a","golink",box.dataset.label); a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer";
-      box.append(a);
-      if (writable()) { const ch = el("button","chg","링크 바꾸기"); ch.onclick = () => { box.dataset.editing = "1"; renderLinks(); }; box.append(ch); }
-    } else if (writable()) {
-      const row = el("div","linkrow"), inp = el("input"); inp.type = "text"; inp.inputMode = "url"; inp.autocapitalize = "off"; inp.placeholder = box.dataset.ph; inp.value = kv.links?.[key] || "";
-      const sv = el("button","submit","저장");
-      sv.onclick = () => {
-        const v = inp.value.trim();
-        if (!v) return;
-        document.querySelectorAll(`.linkbox[data-link="${key}"]`).forEach(b => delete b.dataset.editing);
-        notice(""); store.setKV("links", {...kv.links, [key]:v}).catch(fail);
-      };
-      row.append(inp, sv); box.append(row);
-    }
-  }));
-}
-
 /* ===== 로그아웃 ===== */
 const sheetMode = /^https:/.test(API);
 function syncWho(){
@@ -747,10 +792,12 @@ function syncWho(){
   updateSubmit();
 }
 function updateSubmit(){
+  document.querySelectorAll(".opener").forEach(b => { b.disabled = !writable(); });
   document.querySelectorAll("form[data-col] .submit").forEach(b => { b.disabled = !writable(); });
 }
 const legend = $("#legend");
 KEYS.forEach(k => { const s = el("span"), i = el("i"); i.style.background = `var(${M[k].c})`; s.append(i, M[k].name); legend.append(s); });
+{ const s = el("span"), i = el("i"); i.style.background = "var(--chorus)"; s.append(i, "합창"); legend.append(s); }
 
 /* ===== 탭 ===== */
 const TABS = ["regs","design","songs","parts","members"];
@@ -784,7 +831,7 @@ buildFilter("songs", kindOpts("songs"));
 buildFilter("regs", [{v:"전체",label:"전체"},{v:"공지",label:"공지"},{v:"레귤레이션",label:"레귤레이션"}]);
 
 /* 작성자 */
-const auTag = k => { if (!M[k]) return null; const s = el("span","au"), i = el("i"); i.style.background = `var(${M[k].c})`; s.append(i, M[k].name); return s; };
+const auTag = k => { if (!M[k]) return null; const s = el("span","au","작성자: "), n = el("b",null,M[k].name); n.style.color = `var(${M[k].c})`; s.append(n); return s; };
 function auSelect(val){ const sel = el("select"); sel.className = "ausel"; [["","작성자"], ...KEYS.map(k => [k, `${M[k].heart} ${M[k].name}`])].forEach(([v,l]) => { const o = el("option",null,l); o.value = v; o.selected = v === (val || ""); sel.append(o); }); return sel; }
 const lastAu = lsGet("orbitte-author");
 document.querySelectorAll("select.ausel[name=author]").forEach(sel => { if (M[lastAu]) sel.value = lastAu; sel.addEventListener("change", () => { if (M[sel.value]) { lsSet("orbitte-author", sel.value); document.querySelectorAll("select.ausel[name=author]").forEach(o => { if (!o.value) o.value = sel.value; }); } }); });
@@ -846,9 +893,13 @@ function openLB(r){
   const lb = $("#lb"), imgs = Array.isArray(r.images) ? r.images : [];
   const wrap = $("#lbImgs"); wrap.innerHTML = ""; wrap.hidden = !imgs.length;
   imgs.forEach(id => { const a = el("a"); a.href = `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`; a.target = "_blank"; a.rel = "noopener noreferrer"; a.append(driveImg(id, 1400, r.title)); wrap.append(a); });
+  const multi = imgs.length > 1, dots = $("#lbDots"); dots.innerHTML = "";
+  $("#lbPrev").hidden = $("#lbNext").hidden = !multi; dots.hidden = !multi;
+  if (multi) imgs.forEach(() => dots.append(el("i")));
+  wrap.scrollLeft = 0; lbSync();
   const info = $("#lbInfo"); info.innerHTML = "";
   info.append(el("h3",null,r.title));
-  const meta = el("div","meta"); meta.append(el("span","tag",r.kind)); const la = auTag(r.author); if (la) meta.append(la, "  "); meta.append(fmtDate(r.createdAt)); if (imgs.length > 1) meta.append(`  사진 ${imgs.length}장, 옆으로 넘기기`); info.append(meta);
+  const meta = el("div","meta"); meta.append(el("span","tag",r.kind)); const la = auTag(r.author); if (la) meta.append(la); info.append(meta);
   if (r.note) info.append(el("p",null,r.note));
   linkOrText(info, r.url);
   const acts = el("div","lbacts"); acts.append(likeBtn("design", r));
@@ -863,7 +914,7 @@ function openLB(r){
 function editLB(r){
   const info = $("#lbInfo"); info.innerHTML = "";
   let imgs = Array.isArray(r.images) ? [...r.images] : [];
-  const wrap = $("#lbImgs"); wrap.hidden = true;
+  const wrap = $("#lbImgs"); wrap.hidden = true; $("#lbPrev").hidden = $("#lbNext").hidden = $("#lbDots").hidden = true;
   const t = el("input"); t.value = r.title; t.maxLength = 80; t.placeholder = "제목";
   const k = el("select"); [...document.querySelectorAll('form[data-col="design"] select[name="kind"] option')].forEach(o => { const op = el("option",null,o.value); op.selected = o.value === r.kind; k.append(op); });
   const au = auSelect(r.author);
@@ -894,6 +945,15 @@ function editLB(r){
   const kr = el("div","row"); kr.append(k, au);
   info.append(el("h3",null,"레퍼런스 수정"), t, kr, u, n, ph, pick, r2);
 }
+function lbSync(){
+  const w = $("#lbImgs"), n = w.children.length; if (n < 2) return;
+  const i = Math.round(w.scrollLeft / Math.max(1, w.clientWidth));
+  [...$("#lbDots").children].forEach((d,q) => d.classList.toggle("on", q === i));
+  $("#lbPrev").disabled = i <= 0; $("#lbNext").disabled = i >= n - 1;
+}
+$("#lbImgs").addEventListener("scroll", () => requestAnimationFrame(lbSync));
+$("#lbPrev").onclick = () => { const w = $("#lbImgs"); w.scrollBy({left:-w.clientWidth, behavior:"smooth"}); };
+$("#lbNext").onclick = () => { const w = $("#lbImgs"); w.scrollBy({left:w.clientWidth, behavior:"smooth"}); };
 function closeLB(){ $("#lb").hidden = true; lbId = null; document.body.style.overflow = ""; }
 $("#lbClose").onclick = closeLB;
 $("#lb").addEventListener("click", e => { if (e.target.id === "lb") closeLB(); });
@@ -925,7 +985,7 @@ function renderRefs(col){
       }
       const h = el("h3",null,r.title);
       if (r.artist) { const a = el("span",null,`  ${r.artist}`); a.style.color = "var(--muted)"; a.style.fontWeight = "400"; h.append(a); }
-      const meta = el("div","meta"); meta.append(el("span","tag",r.kind)); const sa = auTag(r.author); if (sa) meta.append(sa, "  "); meta.append(`${fmtDate(r.createdAt)}`);
+      const meta = el("div","meta"); meta.append(el("span","tag",r.kind)); const sa = auTag(r.author); if (sa) meta.append(sa);
       it.append(h, meta);
       if (r.note) it.append(el("p",null,r.note));
       linkOrText(it, r.url);
@@ -956,7 +1016,7 @@ function renderNotices(){
         sv.onclick = () => { if (!t.value.trim()) { notice("내용 입력 필요"); return; } noteEditing.delete(r.id); notice(""); store.update("regs", r.id, {cat:k.value, text:t.value.trim()}).catch(fail); };
         br.append(c, sv); it.classList.add("editing"); it.append(k, t, br); box.append(it); return;
       }
-      const meta = el("div","meta"); meta.append(el("span","tag ncat-" + NCAT.indexOf(r.cat), r.cat), fmtDate(r.createdAt));
+      const meta = el("div","meta"); meta.append(el("span","tag ncat-" + NCAT.indexOf(r.cat), r.cat));
       it.append(meta, el("p","ntext",r.text));
       if (writable()) { const acts = el("div","itemacts"), e = el("button","textbtn","수정"); e.onclick = () => { noteEditing.add(r.id); renderNotices(); }; acts.append(e); it.append(acts); }
       it.append(delBtn("regs", r.id)); box.append(it);
@@ -967,6 +1027,23 @@ function renderNotices(){
 /* 파트 나누기 */
 const openParts = new Set();
 const lyricEditing = new Set();
+const splitSeg = t => { const a = String(t || "").split("/").map(x => x.trim()).filter(Boolean); return a.length ? a : [String(t || "")]; };
+const assignsOf = l => { const n = splitSeg(l.t).length; return n > 1 ? Array.from({length:n}, (_,q) => ((l.s || [])[q] || []).filter(k => M[k])) : [(l.w || []).filter(k => M[k])]; };
+function paintSeg(text, arr){
+  const sp = el("span","seg-t", text);
+  if (arr.length === 1) sp.style.color = `var(${M[arr[0]].c})`;
+  else if (arr.length > 1) sp.style.color = "var(--chorus)";
+  return sp;
+}
+function segDots(arr){
+  if (arr.length < 2) return null;
+  const d = el("span","cdots"); arr.forEach(k => { const i = el("i"); i.style.background = `var(${M[k].c})`; i.title = M[k].name; d.append(i); }); return d;
+}
+function lineBlock(text, ass, cls){
+  const segs = splitSeg(text), blk = el("span", cls);
+  segs.forEach((sg, q) => { const a = ass[q] || ass[0] || []; blk.append(paintSeg(sg, a)); const dt = segDots(a); if (dt) blk.append(dt); if (q < segs.length - 1) blk.append(" "); });
+  return blk;
+}
 function renderParts(){
   const box = $("#list-parts");
   guard(box, () => {
@@ -979,21 +1056,22 @@ function renderParts(){
     const d = el("details","part"); d.open = openParts.has(p.id);
     d.ontoggle = () => d.open ? openParts.add(p.id) : openParts.delete(p.id);
     const sm = el("summary"), ttl = el("h3",null,p.title);
-    ttl.append(el("span","langtag", ja ? "일본곡" : "한국곡"));
+    if (ja && p.title_ko) ttl.append(el("span","subtitle", p.title_ko));
     if (p.artist) ttl.append(el("span","artist", p.artist));
     sm.append(ttl);
     const counts = el("span","counts");
-    KEYS.forEach(k => { const c = lines.filter(l => (l.w||[]).includes(k)).length, s = el("span"), i = el("i"); i.style.background = `var(${M[k].c})`; s.append(i, c); s.setAttribute("aria-label",`${M[k].name} ${c}${ja ? "세트" : "줄"}`); counts.append(s); });
+    KEYS.forEach(k => { const c = lines.filter(l => assignsOf(l).some(a => a.includes(k))).length, s = el("span"), i = el("i"); i.style.background = `var(${M[k].c})`; s.append(i, c); s.setAttribute("aria-label",`${M[k].name} ${c}${ja ? "세트" : "줄"}`); counts.append(s); });
     sm.append(counts); d.append(sm);
     if (lyricEditing.has(p.id) && writable()) {
       d.open = true; openParts.add(p.id);
       const ed = el("div","lyricedit");
-      const t = el("input"); t.value = p.title; t.placeholder = "곡명"; t.maxLength = 80;
+      const t = el("input"); t.value = p.title; t.placeholder = ja ? "곡명 (일본어)" : "곡명"; t.maxLength = 80;
+      const tk = el("input"); tk.value = p.title_ko || ""; tk.placeholder = "곡명 (한국어)"; tk.maxLength = 80; tk.hidden = !ja;
       const a = el("input"); a.value = p.artist || ""; a.placeholder = "아티스트"; a.maxLength = 60;
-      const row = el("div","row"); row.append(t, a);
+      const row = el("div","row"); row.append(t, ja ? tk : a);
       const ta = el("textarea"); ta.style.minHeight = "220px"; ta.maxLength = 12000;
       ta.value = lines.map(l => ja ? [l.t, l.m || "", l.p || ""].join("\n") : l.t).join("\n");
-      const hint = el("div","muted", "줄 순서가 그대로면 칠해 둔 파트 색도 그대로 유지");
+      const hint = el("div","muted", "한 줄 안에서 파트가 바뀌면 그 자리에 / 입력. 줄 순서가 그대로면 칠해 둔 색도 유지");
       const br = el("div","btnrow"), c = el("button","textbtn","취소"), sv = el("button","submit","저장");
       c.onclick = () => { lyricEditing.delete(p.id); renderParts(); };
       sv.onclick = () => {
@@ -1001,38 +1079,56 @@ function renderParts(){
         let nl = [];
         if (ja) {
           if (raw.length % 3) { notice(`일본곡은 일본어, 뜻, 발음 3줄씩. 지금 ${raw.length}줄, 확인 필요`); return; }
-          for (let i = 0; i < raw.length && nl.length < 200; i += 3) nl.push({t:raw[i], m:raw[i+1], p:raw[i+2], w:(lines[nl.length]?.w) || []});
-        } else nl = raw.slice(0,200).map((x,i) => ({t:x, w:(lines[i]?.w) || []}));
+          for (let i = 0; i < raw.length && nl.length < 200; i += 3) { const o = lines[nl.length] || {}; nl.push({t:raw[i], m:raw[i+1], p:raw[i+2], w:o.w || [], s:o.s || []}); }
+        } else nl = raw.slice(0,200).map((x,i) => ({t:x, w:(lines[i]?.w) || [], s:(lines[i]?.s) || []}));
         if (!nl.length) { notice("가사를 한 줄 이상 입력"); return; }
         lyricEditing.delete(p.id); notice("");
-        store.update("parts", p.id, {title:t.value.trim() || p.title, artist:a.value.trim(), lines:nl}).catch(fail);
+        store.update("parts", p.id, {title:t.value.trim() || p.title, title_ko:tk.value.trim(), artist:a.value.trim(), lines:nl}).catch(fail);
       };
-      br.append(c, sv); ed.append(row, ta, hint, br); d.append(ed); box.append(d); return;
+      br.append(c, sv);
+      if (ja) ed.append(row, a, ta, hint, br); else ed.append(row, ta, hint, br);
+      d.append(ed); box.append(d); return;
     }
+    const toggle = (idx, si, k) => {
+      const nl = lines.map((l,j) => {
+        if (j !== idx) return l;
+        const n = splitSeg(l.t).length;
+        if (n > 1) { const s = Array.from({length:n}, (_,q) => [...((l.s || [])[q] || [])]); s[si] = s[si].includes(k) ? s[si].filter(x => x !== k) : [...s[si], k]; return {...l, s}; }
+        const w = l.w || []; return {...l, w: w.includes(k) ? w.filter(x => x !== k) : [...w, k]};
+      });
+      store.update("parts", p.id, {lines:nl}).catch(fail);
+    };
+    const picker = (idx, si, arr, label) => {
+      const ws = el("span","ws");
+      KEYS.forEach(k => {
+        const b = el("button","wbtn"); b.style.setProperty("--c", `var(${M[k].c})`);
+        b.setAttribute("aria-pressed", String(arr.includes(k))); b.setAttribute("aria-label", `${label} ${M[k].name}`);
+        b.onclick = () => toggle(idx, si, k); ws.append(b);
+      });
+      return ws;
+    };
     const ls = el("div","lines" + (ja ? " ja" : ""));
     lines.forEach((ln,idx) => {
-      const row = el("div","line"), w = (ln.w||[]).filter(k => M[k]);
+      const ass = assignsOf(ln), segs = splitSeg(ln.t), row = el("div","line");
       const tx = el("span","t");
-      tx.append(el("span","main",ln.t));
-      if (ja) { if (ln.m) tx.append(el("span","sub",ln.m)); if (ln.p) tx.append(el("span","sub",ln.p)); }
-      if (w.length === 1) tx.style.color = `var(${M[w[0]].c})`;
-      else if (w.length > 1) { tx.classList.add("multi"); tx.style.backgroundImage = `linear-gradient(90deg, ${w.map(k => `var(${M[k].c})`).join(", ")})`; }
-      row.append(tx);
-      if (editing) {
-        const ws = el("span","ws");
-        KEYS.forEach(k => {
-          const b = el("button","wbtn"); b.style.setProperty("--c", `var(${M[k].c})`);
-          const on = w.includes(k); b.setAttribute("aria-pressed", String(on));
-          b.setAttribute("aria-label", `${idx+1}번째 ${ja ? "세트" : "줄"} ${M[k].name}`);
-          b.onclick = () => {
-            const nl = lines.map((l,j) => j !== idx ? l : {...l, w: on ? (l.w||[]).filter(x => x !== k) : [...(l.w||[]), k]});
-            store.update("parts", p.id, {lines:nl}).catch(fail);
-          };
-          ws.append(b);
+      tx.append(lineBlock(ln.t, ass, "main"));
+      if (ja) {
+        [ln.m, ln.p].forEach(sub => {
+          if (!sub) return;
+          const ss = splitSeg(sub);
+          if (ss.length === segs.length) tx.append(lineBlock(sub, ass, "sub"));
+          else { const one = ass.every(a => a.join() === ass[0].join()) ? ass[0] : []; tx.append(lineBlock(sub.replace(/\s*\/\s*/g," "), [one], "sub")); }
         });
-        row.append(ws);
       }
+      row.append(tx);
+      if (editing && segs.length === 1) row.append(picker(idx, 0, ass[0], `${idx+1}번째 ${ja ? "세트" : "줄"}`));
       ls.append(row);
+      if (editing && segs.length > 1) {
+        segs.forEach((sg, q) => {
+          const sr = el("div","line segrow"); sr.append(el("span","t segname", `${q+1}. ${sg}`), picker(idx, q, ass[q], `${idx+1}번째 줄 ${q+1}번째 부분`));
+          ls.append(sr);
+        });
+      }
     });
     d.append(ls);
     const foot = el("div","partfoot");
@@ -1141,7 +1237,11 @@ function renderMembers(){
 }
 
 const langSel = $("#langSel");
-if (langSel) langSel.onchange = () => { $("#lyricsBox").placeholder = langSel.value === "ja" ? "일본어\n뜻\n발음\n(3줄씩 반복, 빈 줄은 무시돼요)" : "가사 (한 줄에 한 파트씩)"; };
+if (langSel) langSel.onchange = () => {
+  const ja = langSel.value === "ja";
+  $("#lyricsBox").placeholder = ja ? "일본어\n뜻\n발음\n(3줄씩 반복, 한 줄 안에서 파트가 바뀌면 그 자리에 /)" : "가사 (한 줄에 한 파트씩, 한 줄 안에서 파트가 바뀌면 그 자리에 /)";
+  $("#ptTitle").placeholder = ja ? "곡명 (일본어)" : "곡명"; $("#ptTitleKo").hidden = !ja; if (!ja) $("#ptTitleKo").value = "";
+};
 
 /* 사진 줄이기 + 미리보기 */
 async function shrink(file){
@@ -1162,6 +1262,19 @@ function showPrev(){
 }
 if (photoIn) photoIn.onchange = showPrev;
 
+/* 작성란 열고 닫기 */
+function setForm(col, open){
+  const f = document.querySelector(`form[data-col="${col}"]`), b = document.querySelector(`.opener[data-open="${col}"]`);
+  if (!f || !b) return;
+  f.hidden = !open; b.hidden = open; b.setAttribute("aria-expanded", String(open));
+  if (open) { const first = f.querySelector("input:not([type=file]),textarea"); if (first) setTimeout(() => first.focus(), 30); }
+}
+document.querySelectorAll(".opener").forEach(b => b.onclick = () => setForm(b.dataset.open, true));
+document.querySelectorAll("form[data-col]").forEach(f => {
+  const c = el("button","textbtn formclose","닫기"); c.type = "button"; c.onclick = () => setForm(f.dataset.col, false);
+  const sub = f.querySelector(".submit"); const row = el("div","formfoot"); sub.replaceWith(row); row.append(c, sub);
+});
+
 /* 그리기 */
 function paint(col){
   if (col === "design" || col === "songs") renderRefs(col);
@@ -1170,7 +1283,6 @@ function paint(col){
 }
 function paintKV(k){
   if (k === "setlist") renderSet();
-  else if (k === "links") renderLinks();
   else if (k === "profiles") renderMembers();
 }
 function paintAll(){ COLS.forEach(paint); KVS.forEach(paintKV); updateSubmit(); const pp = $("#photoPick"); if (pp) pp.hidden = !(store && store.upload); }
@@ -1202,7 +1314,7 @@ document.querySelectorAll("form[data-col]").forEach(f => f.addEventListener("sub
       btn.textContent = "올리기"; updateSubmit();
     }
   }
-  notice(""); f.reset(); if (col === "design") showPrev();
+  notice(""); f.reset(); setForm(col, false); if (col === "design") showPrev(); if (col === "parts" && langSel) langSel.onchange();
   f.querySelectorAll("select.ausel").forEach(sel => { const v = lsGet("orbitte-author"); if (M[v]) sel.value = v; });
   store.add(col, row).catch(e => notice(e?.code === "quota_exceeded" ? "저장 공간 가득 참. 오래된 항목 삭제 필요" : "저장 실패. 잠시 후 다시 시도"));
 }));
