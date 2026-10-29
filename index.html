@@ -96,7 +96,7 @@ section > h2{font-size:22px;margin:4px 2px 4px}
 /* form */
 form{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;display:grid;gap:8px;margin-bottom:16px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-input,select,textarea{width:100%;background:var(--field);color:var(--field-ink);color-scheme:light;border:1px solid transparent;border-radius:10px;padding:9px 11px;font-size:15px}
+input,select,textarea{box-sizing:border-box;width:100%;max-width:100%;background:var(--field);color:var(--field-ink);color-scheme:light;border:1px solid transparent;border-radius:10px;padding:9px 11px;font-size:15px}
 textarea{min-height:64px;resize:vertical}
 input::placeholder,textarea::placeholder{color:var(--field-ph);opacity:1}
 input:disabled,select:disabled,textarea:disabled{opacity:.6}
@@ -310,7 +310,8 @@ form[hidden]{display:none}
 .ep{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden}
 .ep img{width:100%;height:100%;object-fit:cover;display:block}
 .ep button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(10,15,44,.8);color:#fff;cursor:pointer;line-height:1}
-.lyricedit{display:grid;gap:8px;padding:4px 12px 12px}
+.lyricedit{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:4px 12px 12px}
+.lyricedit .pf{min-width:0}
 .lyricedit .muted{font-size:12px}
 #lbInfo > input,#lbInfo > select,#lbInfo > textarea{width:100%}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -572,12 +573,16 @@ KEYS.forEach(k => {
   const g = mk("g",{transform:`rotate(-14 ${cx} ${cy})`}); svg.append(g);
   const orbits = KEYS.map((k,i) => ({k, rx:56+i*34, ry:(56+i*34)*.36, speed:.00022/(1+i*.55), phase:i*1.7}));
   orbits.forEach(o => g.append(mk("ellipse",{cx,cy,rx:o.rx,ry:o.ry,fill:"none",stroke:"var(--sky-orbit)","stroke-width":1})));
-  g.append(mk("circle",{cx,cy,r:14,fill:"var(--sky-ink)",opacity:.08}));
-  g.append(mk("circle",{cx,cy,r:4.5,fill:"var(--sky-ink)"}));
+  const defs = mk("defs",{}); svg.prepend(defs);
+  KEYS.forEach(k => {
+    const rg = mk("radialGradient",{id:`glow-${k}`});
+    [[0,.75],[.18,.55],[.45,.2],[1,0]].forEach(([o,a]) => { const st = mk("stop",{offset:o}); st.setAttribute("style",`stop-color:var(${M[k].sc});stop-opacity:${a}`); rg.append(st); });
+    defs.append(rg);
+  });
   const stars = orbits.map(o => {
     const s = mk("g",{});
-    s.append(mk("circle",{r:9,fill:`var(${M[o.k].sc})`,opacity:.22}));
-    s.append(mk("circle",{r:4.2,fill:`var(${M[o.k].sc})`}));
+    s.append(mk("circle",{r:10.5,fill:`url(#glow-${o.k})`}));
+    s.append(mk("circle",{r:3.8,fill:`var(${M[o.k].sc})`}));
     g.append(s); return {o,s};
   });
   const place = t => stars.forEach(({o,s}) => { const a = o.phase + t*o.speed; s.setAttribute("transform",`translate(${(cx+o.rx*Math.cos(a)).toFixed(1)} ${(cy+o.ry*Math.sin(a)).toFixed(1)})`); });
@@ -776,7 +781,13 @@ async function exportSet(){
     g.save(); g.translate(W/2, 200); g.rotate(-14*Math.PI/180); g.strokeStyle = "rgba(110,125,210,.32)"; g.lineWidth = 2;
     [250, 340, 430].forEach(r => { g.beginPath(); g.ellipse(0, 0, r, r*.3, 0, 0, Math.PI*2); g.stroke(); });
     const dots = [["#FF6B81",250,.9],["#FFA45C",340,2.6],["#9BDDF7",430,4.3],["#F6F3FF",340,5.6]];
-    dots.forEach(([col,r,a]) => { const x = r*Math.cos(a), y = r*.3*Math.sin(a); g.fillStyle = col; g.globalAlpha = .25; g.beginPath(); g.arc(x,y,16,0,Math.PI*2); g.fill(); g.globalAlpha = 1; g.beginPath(); g.arc(x,y,7,0,Math.PI*2); g.fill(); });
+    const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`; };
+    dots.forEach(([col,r,a]) => {
+      const x = r*Math.cos(a), y = r*.3*Math.sin(a);
+      const gl = g.createRadialGradient(x,y,0,x,y,17); gl.addColorStop(0,rgba(col,.75)); gl.addColorStop(.18,rgba(col,.55)); gl.addColorStop(.45,rgba(col,.2)); gl.addColorStop(1,rgba(col,0));
+      g.fillStyle = gl; g.beginPath(); g.arc(x,y,17,0,Math.PI*2); g.fill();
+      g.fillStyle = col; g.beginPath(); g.arc(x,y,7,0,Math.PI*2); g.fill();
+    });
     g.restore();
     g.textAlign = "center";
     g.font = '150px "Milesdane", "Playfair Display", serif';
@@ -1199,7 +1210,7 @@ function renderParts(){
       const t = el("input"); t.value = p.title; t.placeholder = ja ? "곡명 (일본어)" : "곡명"; t.maxLength = 80;
       const tk = el("input"); tk.value = p.title_ko || ""; tk.placeholder = "곡명 (한국어)"; tk.maxLength = 80; tk.hidden = !ja;
       const a = el("input"); a.value = p.artist || ""; a.placeholder = "아티스트"; a.maxLength = 60;
-      const row = el("div","row"); row.append(t, ja ? tk : a);
+      const lab = (txt, inp) => { const l = el("label","pf"); l.append(el("span",null,txt), inp); return l; };
       const ta = el("textarea"); ta.style.minHeight = "220px"; ta.maxLength = 12000;
       ta.value = lines.map(l => ja ? [l.t, l.m || "", l.p || ""].join("\n") : l.t).join("\n");
       const hint = el("div","muted", "한 줄 안에서 파트가 바뀌면 그 자리에 / 입력. 줄 순서가 그대로면 칠해 둔 색도 유지");
@@ -1217,7 +1228,8 @@ function renderParts(){
         store.update("parts", p.id, {title:t.value.trim() || p.title, title_ko:tk.value.trim(), artist:a.value.trim(), lines:nl}).catch(fail);
       };
       br.append(c, sv);
-      if (ja) ed.append(row, a, ta, hint, br); else ed.append(row, ta, hint, br);
+      if (ja) ed.append(lab("곡명 (일본어)", t), lab("곡명 (한국어)", tk), lab("아티스트", a), lab("가사 (일본어 / 뜻 / 발음 3줄씩)", ta), hint, br);
+      else ed.append(lab("곡명", t), lab("아티스트", a), lab("가사", ta), hint, br);
       d.append(ed); box.append(d); return;
     }
     const toggle = (idx, si, k) => {
@@ -1263,7 +1275,7 @@ function renderParts(){
     });
     const foot = el("div","partfoot");
     if (writable()) {
-      const le = el("button","textbtn","가사 수정"); le.onclick = () => { lyricEditing.add(p.id); renderParts(); }; foot.append(le);
+      const le = el("button","textbtn","곡·가사 수정"); le.onclick = () => { lyricEditing.add(p.id); renderParts(); }; foot.append(le);
       const dl = el("button","textbtn","곡 삭제"); dl.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("parts", p.id).catch(fail); }; foot.append(dl);
       const t = el("button", editing ? "submit" : "textbtn", editing ? "파트 확정" : "파트 수정");
       t.onclick = () => {
