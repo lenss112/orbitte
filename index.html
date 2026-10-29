@@ -257,6 +257,10 @@ form[hidden]{display:none}
 .cmrow select{width:auto}
 .cmrow .submit{padding:7px 16px}
 .formtext{font-size:14px;line-height:1.7}
+.stagecard{margin-top:12px}
+.yt{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.ytlink{justify-self:end;font-size:13px;color:var(--accent);text-decoration:none}
 .formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
 .au b{font-weight:500}
 .seg-t.unset{font-style:italic}
@@ -1322,12 +1326,17 @@ const TEAM_SNS = [
   ["YouTube", "@ORBITte_OFCL", "https://www.youtube.com/@ORBITte_OFCL"],
   ["X", "@ORBITte_OFCL", "https://x.com/ORBITte_OFCL"]
 ];
+const DEFAULT_PLAYLIST = "https://youtube.com/playlist?list=PL0QGEM77PqplV-AVSoGnxrdba34tZhanm";
+const listId = u => { const m = String(u || "").match(/[?&]list=([\w-]+)/) || String(u || "").match(/^(PL[\w-]+|UU[\w-]+)$/); return m ? m[1] : ""; };
 const profEditing = new Set();
 const snsIcon = l => /youtube|유튜브/i.test(l) ? "▶" : /^x\b|트위터|twitter/i.test(l) ? "𝕏" : /insta|인스타/i.test(l) ? "◎" : /tiktok|틱톡/i.test(l) ? "♪" : "🔗";
 const snsName = l => /^유튜브$/.test(l) ? "YouTube" : /^X \(트위터\)$/.test(l) ? "X" : l;
 function renderMembers(){
   const box = $("#list-members");
   guard(box, () => {
+    const key = JSON.stringify([kv.profiles || {}, [...profEditing], writable()]);
+    if (box.dataset.key === key) return;
+    box.dataset.key = key;
     box.innerHTML = "";
     const prof = kv.profiles || {};
     const tc = el("div","mcard teamcard");
@@ -1347,14 +1356,16 @@ function renderMembers(){
       };
       draw();
       const add = el("button","add","항목 추가"); add.onclick = () => { rows.push({label:"", handle:"", url:""}); draw(); };
+      const pl = el("input"); pl.value = prof.playlist ?? DEFAULT_PLAYLIST; pl.placeholder = "유튜브 재생목록 링크"; pl.inputMode = "url"; pl.autocapitalize = "off";
+      const pll = el("label","pf"); pll.append(el("span",null,"스테이지 영상 (유튜브 재생목록 링크, 비우면 숨김)"), pl);
       const br = el("div","btnrow"), cc = el("button","textbtn","취소"), sv = el("button","submit","저장");
       cc.onclick = () => { profEditing.delete("team"); renderMembers(); };
       sv.onclick = () => {
         const out = rows.map(t => ({label:(t.label||"").trim(), handle:(t.handle||"").trim(), url:(t.url||"").trim()})).filter(t => t.label || t.handle || t.url);
         profEditing.delete("team"); notice("");
-        store.setKV("profiles", {...(kv.profiles||{}), team:out}).catch(fail);
+        store.setKV("profiles", {...(kv.profiles||{}), team:out, playlist:pl.value.trim()}).catch(fail);
       };
-      br.append(cc, sv); tc.append(list, add, br);
+      br.append(cc, sv); tc.append(list, add, pll, br);
     } else {
       const tl = el("div","teamsns");
       team.forEach(t => {
@@ -1369,6 +1380,21 @@ function renderMembers(){
       if (writable()) { const e = el("button","textbtn","수정"); e.style.justifySelf = "end"; e.onclick = () => { profEditing.add("team"); renderMembers(); }; tc.append(e); }
     }
     box.append(tc);
+    const lid = listId(prof.playlist ?? DEFAULT_PLAYLIST);
+    if (lid && !profEditing.has("team")) {
+      const vc = el("div","mcard stagecard"); vc.append(el("h3",null,"스테이지 영상"));
+      let fr = box.dataset.lid === lid ? box._frame : null;
+      if (!fr) {
+        fr = el("div","yt");
+        const ifr = document.createElement("iframe");
+        ifr.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(lid)}&rel=0`;
+        ifr.title = "오르비테 스테이지 재생목록"; ifr.loading = "lazy"; ifr.referrerPolicy = "strict-origin-when-cross-origin";
+        ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"; ifr.allowFullscreen = true;
+        fr.append(ifr); box._frame = fr; box.dataset.lid = lid;
+      }
+      const a = el("a","ytlink","유튜브에서 재생목록 열기 ↗"); a.href = `https://www.youtube.com/playlist?list=${encodeURIComponent(lid)}`; a.target = "_blank"; a.rel = "noopener noreferrer";
+      vc.append(fr, a); box.append(vc);
+    }
   });
 }
 
