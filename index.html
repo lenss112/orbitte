@@ -26,6 +26,7 @@
   --sky-irin:#FF6B81; --sky-hane:#FFA45C; --sky-remi:#9BDDF7; --sky-sena:#F6F3FF;
   --bar:rgba(10,15,44,.86);
   --chorus:#C9A8FF;
+  --unset:#6D7499;
   --chrome:linear-gradient(176deg,#FFFFFF 0%,#E4E9F8 34%,#8F9CCB 50%,#F4F6FC 66%,#B7C2E6 100%);
   color-scheme:dark;
   box-sizing:border-box;
@@ -110,8 +111,6 @@ input:disabled,select:disabled,textarea:disabled{opacity:.6}
 .item p{margin:6px 0 0;white-space:pre-wrap;word-break:break-word}
 .item a.link{display:inline-block;margin-top:6px;color:var(--accent);word-break:break-all;font-size:14px}
 .tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;margin-right:6px;color:var(--muted)}
-.del{position:absolute;top:10px;right:10px;border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px 6px}
-.del:hover{color:var(--danger)}
 .empty{color:var(--muted);text-align:center;padding:28px 12px;border:1px dashed var(--line);border-radius:16px;font-size:15px}
 .filter{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .filter button{border:1px solid var(--line);background:none;border-radius:999px;padding:3px 12px;font-size:13px;color:var(--muted);cursor:pointer}
@@ -198,7 +197,7 @@ details.part summary h3{font-size:17px;word-break:break-word}
 .ws{display:flex;gap:5px;flex:none}
 .wbtn{width:24px;height:24px;border-radius:50%;border:2px solid var(--c);background:transparent;cursor:pointer;padding:0}
 .wbtn[aria-pressed="true"]{background:var(--c)}
-.partfoot{display:flex;justify-content:space-between;align-items:center;padding:0 12px 10px;font-size:13px;color:var(--muted)}
+.partfoot{display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:0 2px 10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:0}
 /* members */
@@ -221,6 +220,12 @@ form[hidden]{display:none}
 .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 2px 4px}
 .sechead h2{margin:0 !important}
 .teamsns{display:grid;gap:6px}
+.teamsns > div{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+.teamedit{display:grid;gap:10px}
+.terow{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.terow input:nth-child(3){grid-column:1/-1}
+.terow .textbtn{grid-column:1/-1;justify-self:end}
+.teamcard .add{border:1px dashed var(--line);background:none;border-radius:10px;padding:7px;width:100%;color:var(--muted);cursor:pointer;font-size:14px}
 .teamsns a{display:flex;justify-content:space-between;align-items:center;gap:10px;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
 .teamsns .tlabel{font-size:14px;color:var(--muted)}
 .teamsns .thandle{font-size:15px;font-weight:500}
@@ -231,6 +236,8 @@ form[hidden]{display:none}
 .cm{display:grid;gap:2px}
 .cmhead{display:flex;align-items:center;gap:8px;font-size:13px}
 .cmhead b{font-weight:500}
+.cmacts{gap:10px}
+.cmacts .textbtn{font-size:12px}
 .cmdel{border:0;background:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0;margin-left:auto}
 .cm p{margin:0;font-size:15px;white-space:pre-wrap;word-break:break-word}
 .cmform{display:grid;gap:6px}
@@ -238,8 +245,10 @@ form[hidden]{display:none}
 .cmrow{display:flex;gap:8px;justify-content:flex-end}
 .cmrow select{width:auto}
 .cmrow .submit{padding:7px 16px}
+.formtext{font-size:14px;line-height:1.7}
 .formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
 .au b{font-weight:500}
+.seg-t.unset{font-style:italic}
 .cdots{display:inline-flex;gap:3px;margin-left:5px;vertical-align:1px}
 .cdots i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .line .t .main,.line .t .sub{display:block}
@@ -256,7 +265,7 @@ form[hidden]{display:none}
 .meta .au{font-size:13px;margin-right:2px}
 .ausel:invalid{color:var(--field-ph)}
 .notice-item .meta{margin:0 0 4px}
-.notice-item .ntitle{margin:2px 0 0;font-size:18px;font-weight:700;line-height:1.4;word-break:break-word;padding-right:40px}
+.notice-item .ntitle{margin:2px 0 0;font-size:18px;font-weight:700;line-height:1.4;word-break:break-word}
 .notice-item .nbody{margin:6px 0 0;font-size:14px;line-height:1.6;color:var(--muted);white-space:pre-wrap;word-break:break-word}
 .tag.ncat-1{color:var(--hane);border-color:var(--hane)}
 .tag.ncat-0{color:#0A0F2C;background:#FFFFFF;border-color:#FFFFFF}
@@ -293,6 +302,8 @@ form[hidden]{display:none}
 .dinfo .meta{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .dinfo .like{padding:1px 8px;font-size:12px}
 .itemacts,.lbacts{display:flex;align-items:center;gap:12px;margin-top:8px}
+.rgrp{margin-left:auto;display:flex;gap:14px}
+.rgrp:empty{display:none}
 .item.editing{display:grid;gap:8px}
 .editphotos{display:flex;gap:6px;flex-wrap:wrap}
 .editphotos:empty{display:none}
@@ -597,8 +608,8 @@ function pickDefault(list){
   return (past || list[0])?.id || null;
 }
 function curShow(){ const l = shows(); if (!l.find(s => s.id === selShow)) selShow = pickDefault(l); return l.find(s => s.id === selShow) || null; }
-const md = d => `${+d.slice(5,7)}월 ${+d.slice(8)}일`;
-const showLabel = s => [s.date ? `${+s.date.slice(5,7)}/${+s.date.slice(8)}` : "", s.title].filter(Boolean).join(" ") || "새 공연";
+const md = d => `${+d.slice(0,4) !== today.getFullYear() ? d.slice(0,4) + "년 " : ""}${+d.slice(5,7)}월 ${+d.slice(8)}일`;
+const showLabel = s => [s.date ? `${+s.date.slice(0,4) !== today.getFullYear() ? s.date.slice(2,4) + "/" : ""}${+s.date.slice(5,7)}/${+s.date.slice(8)}` : "", s.title].filter(Boolean).join(" ") || "새 공연";
 function renderSet(){
   const boxEl = $("#setBox");
   guard(boxEl, () => {
@@ -658,7 +669,11 @@ function renderSet(){
     t.placeholder = "공연 이름 (예: 12월 원맨)"; t.maxLength = 60; t.value = cur.title;
     d.type = "date"; d.value = cur.date; d.setAttribute("aria-label","공연 날짜");
     t.oninput = () => { setEditing = true; const c = curShow(); if (c) { c.title = t.value; queueSave(); } };
-    d.onchange = () => { setEditing = true; const c = curShow(); if (c) { c.date = d.value; saveSet(); } };
+    d.onchange = () => {
+      setEditing = true; const c = curShow();
+      if (c) { c.date = d.value; saveSet(); }
+      if (d.value && d.value < TODAY) notice(`${d.value.slice(0,4)}년 ${+d.value.slice(5,7)}월 ${+d.value.slice(8)}일은 지난 날짜. 내년 공연이면 연도 확인 필요`);
+    };
     const del = el("button","textbtn","이 공연 삭제");
     del.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; shows(); kv.setlist.shows = kv.setlist.shows.filter(s => s.id !== cur.id); selShow = null; setEditing = false; saveSet(); renderSet(); };
     hr.append(t, d); head.append(hr);
@@ -843,6 +858,7 @@ function updateSubmit(){
 const legend = $("#legend");
 KEYS.forEach(k => { const s = el("span"), i = el("i"); i.style.background = `var(${M[k].c})`; s.append(i, M[k].name); legend.append(s); });
 { const s = el("span"), i = el("i"); i.style.background = "var(--chorus)"; s.append(i, "합창"); legend.append(s); }
+{ const s = el("span"), i = el("i"); i.style.background = "var(--unset)"; s.append(i, "미선택"); legend.append(s); }
 
 /* ===== 탭 ===== */
 const TABS = ["regs","design","songs","parts","members"];
@@ -856,11 +872,13 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => showTab(b
 showTab(location.hash.slice(1));
 
 /* ===== 공통 ===== */
-const delBtn = (col,id,cls) => {
-  const b = el("button", cls || "del", cls ? "곡 삭제" : "삭제"); b.hidden = !writable();
-  b.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove(col,id).catch(fail); };
-  return b;
-};
+function edDel(onEdit, onDel){
+  const g = el("span","rgrp");
+  if (!writable()) return g;
+  const e = el("button","textbtn","수정"); e.onclick = onEdit;
+  const d = el("button","textbtn","삭제"); d.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; onDel(); };
+  g.append(e, d); return g;
+}
 const filters = {design:"전체", songs:"전체", regs:"전체"};
 function buildFilter(col, opts){
   const box = document.querySelector(`[data-filter="${col}"]`); box.innerHTML = "";
@@ -972,11 +990,7 @@ function openLB(r){
   if (r.note) info.append(el("p",null,r.note));
   linkOrText(info, r.url);
   const acts = el("div","lbacts"); acts.append(likeBtn("design", r));
-  if (writable()) {
-    const ed = el("button","textbtn","수정"); ed.onclick = () => editLB(r);
-    const d = el("button","textbtn","삭제"); d.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; closeLB(); store.remove("design", r.id).catch(fail); };
-    acts.append(ed, d);
-  }
+  acts.append(edDel(() => editLB(r), () => { closeLB(); store.remove("design", r.id).catch(fail); }));
   info.append(acts);
   if (lb.hidden) { lb.hidden = false; document.body.style.overflow = "hidden"; $("#lbClose").focus(); }
 }
@@ -1059,8 +1073,8 @@ function renderRefs(col){
       if (r.note) it.append(el("p",null,r.note));
       linkOrText(it, r.url);
       const acts = el("div","itemacts"); acts.append(likeBtn(col, r));
-      if (writable()) { const e = el("button","textbtn","수정"); e.onclick = () => { songEditing.add(r.id); renderRefs(col); }; acts.append(e); }
-      it.append(acts, delBtn(col,r.id)); box.append(it);
+      acts.append(edDel(() => { songEditing.add(r.id); renderRefs(col); }, () => store.remove(col, r.id).catch(fail)));
+      it.append(acts); box.append(it);
     });
   });
 }
@@ -1069,7 +1083,7 @@ function renderRefs(col){
 const noteEditing = new Set();
 const NCAT = ["공지","토론중","레귤레이션"];
 /* 토론중 댓글 */
-const cmOpen = new Set();
+const cmOpen = new Set(), cmEditing = new Set();
 function commentBox(r, cm){
   const wrap = el("div","cmbox");
   if (!cm.length) wrap.append(el("div","cmempty","아직 댓글 없음"));
@@ -1077,7 +1091,14 @@ function commentBox(r, cm){
     const row = el("div","cm"), head = el("div","cmhead");
     const nm = el("b",null, M[c.author] ? M[c.author].name : "누군가"); if (M[c.author]) nm.style.color = `var(${M[c.author].c})`;
     head.append(nm);
-    if (writable()) { const x = el("button","cmdel","삭제"); x.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("comments", c.id).catch(fail); }; head.append(x); }
+    if (cmEditing.has(c.id) && writable()) {
+      const t = el("textarea"); t.value = c.text; t.maxLength = 1000;
+      const br = el("div","cmrow"), cc = el("button","textbtn","취소"), sv = el("button","submit","저장");
+      cc.onclick = () => { cmEditing.delete(c.id); renderNotices(); };
+      sv.onclick = () => { if (!t.value.trim()) { notice("댓글 내용 입력 필요"); return; } cmEditing.delete(c.id); t.blur(); notice(""); store.update("comments", c.id, {text:t.value.trim()}).catch(fail); renderNotices(); };
+      br.append(cc, sv); row.append(head, t, br); wrap.append(row); return;
+    }
+    const g = edDel(() => { cmEditing.add(c.id); renderNotices(); }, () => store.remove("comments", c.id).catch(fail)); g.classList.add("cmacts"); head.append(g);
     row.append(head, el("p",null,c.text)); wrap.append(row);
   });
   if (writable()) {
@@ -1125,12 +1146,10 @@ function renderNotices(){
         tb.onclick = () => { open ? cmOpen.delete(r.id) : cmOpen.add(r.id); renderNotices(); };
         acts.append(tb);
       }
-      if (writable()) { const e = el("button","textbtn","수정"); e.onclick = () => { noteEditing.add(r.id); renderNotices(); }; acts.append(e); }
-      if (acts.childElementCount) it.append(acts);
+      acts.append(edDel(() => { noteEditing.add(r.id); renderNotices(); }, () => { store.remove("regs", r.id).catch(fail); cm.forEach(c => store.remove("comments", c.id).catch(() => {})); }));
+      it.append(acts);
       if (cmOpen.has(r.id)) it.append(commentBox(r, cm));
-      const db = delBtn("regs", r.id);
-      db.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("regs", r.id).catch(fail); cm.forEach(c => store.remove("comments", c.id).catch(() => {})); };
-      it.append(db); box.append(it);
+      box.append(it);
     });
   });
 }
@@ -1144,6 +1163,7 @@ function paintSeg(text, arr){
   const sp = el("span","seg-t", text);
   if (arr.length === 1) sp.style.color = `var(${M[arr[0]].c})`;
   else if (arr.length > 1) sp.style.color = "var(--chorus)";
+  else { sp.style.color = "var(--unset)"; sp.classList.add("unset"); }
   return sp;
 }
 function segDots(arr){
@@ -1241,11 +1261,10 @@ function renderParts(){
         });
       }
     });
-    d.append(ls);
     const foot = el("div","partfoot");
     if (writable()) {
-      foot.append(delBtn("parts",p.id,"textbtn"));
       const le = el("button","textbtn","가사 수정"); le.onclick = () => { lyricEditing.add(p.id); renderParts(); }; foot.append(le);
+      const dl = el("button","textbtn","곡 삭제"); dl.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("parts", p.id).catch(fail); }; foot.append(dl);
       const t = el("button", editing ? "submit" : "textbtn", editing ? "파트 확정" : "파트 수정");
       t.onclick = () => {
         if (editing) { partEditing.delete(p.id); store.update("parts", p.id, {locked:true}).catch(fail); }
@@ -1253,13 +1272,15 @@ function renderParts(){
       };
       foot.append(t);
     }
-    d.append(foot); box.append(d);
+    if (foot.childElementCount) d.append(foot);
+    d.append(ls); box.append(d);
   });
   });
 }
 const partEditing = new Set();
 
 /* 멤버 인포 */
+const DEFAULT_FORM = "━━ 1. 표시 이름 ━━\n이름 + 이모지 + 【ORBITte】\n예) 레미 🐿️ 【ORBITte】\n\n━━ 2. 바이오 (프로필 소개) ━━\n[하트] ORBITte 🌠 [담당색] 담당\n🎂 [생일] | [MBTI]\n🪐 @ORBITte_OFCL\n#[이름]_오르비테\n\n예)\n🩵 ORBITte 🌠 스카이블루 담당\n🎂 6.14 | MBTI\n🪐 @ORBITte_OFCL\n#레미_오르비테\n\n━━ 3. 고정 트윗 (인포) ━━\n🌠 ORBITte [이름] [이모지]\n\n[하트] 담당색: [담당색]\n🎂 생일: [생일]\n✨ 취미:\n🎤 특기:\n💬 한마디:\n\n#[이름]_오르비테 (일반)\n#[이름]그림 (팬아트)\n#ORBITte\n\n🪐 X @ORBITte_OFCL\n📺 YouTube @ORBITte_OFCL\n\n━━ 멤버별 기본값 ━━\n❤️ 아이린 📮 【ORBITte】 레드 담당 · 5.27 · #아이린_오르비테\n🧡 하네 🪶 【ORBITte】 오렌지 담당 · 9.26 · #하네_오르비테\n🩵 레미 🐿️ 【ORBITte】 스카이블루 담당 · 6.14 · #레미_오르비테\n🤍 세나 🎀 【ORBITte】 화이트 담당 · 1.6 · #세나_오르비테";
 const TEAM_SNS = [
   ["유튜브", "@ORBITte_OFCL", "https://www.youtube.com/@ORBITte_OFCL"],
   ["X (트위터)", "@ORBITte_OFCL", "https://x.com/ORBITte_OFCL"]
@@ -1289,18 +1310,51 @@ function renderMembers(){
     box.innerHTML = "";
     const prof = kv.profiles || {};
     const tc = el("div","mcard formcard teamcard"); tc.append(el("h3",null,"팀 정보"));
-    const tl = el("div","teamsns");
-    TEAM_SNS.forEach(([label, handle, url]) => { const a = el("a"); a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.append(el("span","tlabel",label), el("span","thandle",handle)); tl.append(a); });
-    tc.append(tl); box.append(tc);
+    const team = Array.isArray(prof.team) ? prof.team : TEAM_SNS.map(([label, handle, url]) => ({label, handle, url}));
+    if (profEditing.has("team") && writable()) {
+      const rows = team.map(t => ({...t})), list = el("div","teamedit");
+      const draw = () => {
+        list.innerHTML = "";
+        rows.forEach((t,i) => {
+          const r = el("div","terow");
+          const a = el("input"); a.value = t.label || ""; a.placeholder = "이름 (예: 유튜브)"; a.oninput = () => t.label = a.value;
+          const b = el("input"); b.value = t.handle || ""; b.placeholder = "표시 (예: @ORBITte_OFCL)"; b.oninput = () => t.handle = b.value;
+          const c = el("input"); c.value = t.url || ""; c.placeholder = "링크 (선택)"; c.inputMode = "url"; c.autocapitalize = "off"; c.oninput = () => t.url = c.value;
+          const x = el("button","textbtn","빼기"); x.onclick = () => { rows.splice(i,1); draw(); };
+          r.append(a, b, c, x); list.append(r);
+        });
+      };
+      draw();
+      const add = el("button","add","항목 추가"); add.onclick = () => { rows.push({label:"", handle:"", url:""}); draw(); };
+      const br = el("div","btnrow"), cc = el("button","textbtn","취소"), sv = el("button","submit","저장");
+      cc.onclick = () => { profEditing.delete("team"); renderMembers(); };
+      sv.onclick = () => {
+        const out = rows.map(t => ({label:(t.label||"").trim(), handle:(t.handle||"").trim(), url:(t.url||"").trim()})).filter(t => t.label || t.handle || t.url);
+        profEditing.delete("team"); notice("");
+        store.setKV("profiles", {...(kv.profiles||{}), team:out}).catch(fail);
+      };
+      br.append(cc, sv); tc.append(list, add, br);
+    } else {
+      const tl = el("div","teamsns");
+      team.forEach(t => {
+        const u = safeUrl(t.url) || safeUrl(t.handle);
+        const a = el(u ? "a" : "div"); if (u) { a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer"; }
+        a.append(el("span","tlabel",t.label || ""), el("span","thandle",t.handle || t.url || "")); tl.append(a);
+      });
+      if (!team.length) tl.append(el("span","muted","아직 팀 정보 없음"));
+      tc.append(tl);
+      if (writable()) { const e = el("button","textbtn","수정"); e.style.justifySelf = "end"; e.onclick = () => { profEditing.add("team"); renderMembers(); }; tc.append(e); }
+    }
+    box.append(tc);
     const fc = el("div","mcard formcard"); fc.append(el("h3",null,"공통 인포 양식"));
     if (profEditing.has("form") && writable()) {
-      const ta = el("textarea"); ta.value = prof.form || ""; ta.placeholder = "바이오, X 인포에 들어갈 항목과 순서"; ta.maxLength = 2000; ta.style.minHeight = "110px";
+      const ta = el("textarea"); ta.value = prof.form || DEFAULT_FORM; ta.placeholder = "바이오, X 인포에 들어갈 항목과 순서"; ta.maxLength = 4000; ta.style.minHeight = "320px";
       const r = el("div","btnrow"), c = el("button","textbtn","취소"), s = el("button","submit","저장");
       c.onclick = () => { profEditing.delete("form"); renderMembers(); };
       s.onclick = () => { profEditing.delete("form"); store.setKV("profiles", {...(kv.profiles||{}), form:ta.value.trim()}).catch(fail); };
       r.append(c, s); fc.append(ta, r);
     } else {
-      fc.append(prof.form ? el("p",null,prof.form) : el("span","muted","바이오, X 인포 양식이 정해지면 여기에"));
+      fc.append(el("p","formtext",prof.form || DEFAULT_FORM));
       if (writable()) { const e = el("button","textbtn","수정"); e.style.justifySelf = "start"; e.onclick = () => { profEditing.add("form"); renderMembers(); }; fc.append(e); }
     }
     box.append(fc);
