@@ -63,17 +63,17 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* sky */
-.sky{position:relative;background:radial-gradient(120% 90% at 50% 40%,var(--sky-2),var(--sky));border:1px solid var(--line);color:var(--sky-ink);border-radius:28px;overflow:hidden;padding:8px 8px 22px}
+.sky{position:relative;padding:2px 8px 14px !important;background:radial-gradient(120% 90% at 50% 40%,var(--sky-2),var(--sky));border:1px solid var(--line);color:var(--sky-ink);border-radius:28px;overflow:hidden;padding:8px 8px 22px}
 .sky svg{display:block;width:100%;height:auto}
 .orbitwrap{position:relative}
-.wordmark{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);font-size:clamp(54px,16vw,88px);line-height:1;text-align:center;pointer-events:none}
-.subtitle-note{text-align:center;font-size:14px;color:var(--sky-muted);margin-top:-4px}
+.wordmark{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);font-size:clamp(50px,14vw,80px);line-height:1;text-align:center;pointer-events:none}
+.subtitle-note{text-align:center;font-size:13px;color:var(--sky-muted);margin-top:-6px}
 .wm{position:relative;display:inline-block;font-family:"Milesdane","Playfair Display",Georgia,serif;font-style:normal;font-weight:400;letter-spacing:.01em;padding:0 .12em;background:var(--chrome);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px rgba(120,150,255,.4))}
 .spark{position:absolute;color:#AFC4FF;font-style:normal;line-height:1;filter:drop-shadow(0 0 6px #6F8BFF);-webkit-text-fill-color:#CFDBFF}
 .spark.a{top:-.05em;right:-.18em;font-size:.34em}
 .spark.b{bottom:.12em;left:-.22em;font-size:.22em}
 .wordmark small{display:block;line-height:1.4;font-family:inherit;font-size:14px;letter-spacing:0;color:var(--sky-muted);margin-top:10px}
-.members{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:18px;padding:0 8px}
+.members{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;padding:0 8px}
 .mem{text-align:center;font-size:13px;color:var(--sky-muted);line-height:1.4}
 .mem .nm{display:block;font-size:15px;color:var(--sky-ink)}
 .mem .em,.mem .bd{display:block}
@@ -214,10 +214,12 @@ details.part summary h3{font-size:17px;word-break:break-word}
 .mcard a{color:var(--accent);word-break:break-all;font-size:14px}
 .btnrow{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 .formcard{margin-bottom:12px}
-.opener{display:block;width:100%;border:1px dashed var(--line);background:rgba(24,31,78,.5);color:var(--ink);border-radius:14px;padding:12px;font-size:15px;cursor:pointer;margin-bottom:14px}
+.opener{flex:none;border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:4px 13px;font-size:13px;cursor:pointer;line-height:1.5}
 .opener[hidden]{display:none}
 .opener:disabled{opacity:.5;cursor:default}
 form[hidden]{display:none}
+.sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 2px 4px}
+.sechead h2{margin:0 !important}
 .formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
 .au b{font-weight:500}
 .cdots{display:inline-flex;gap:3px;margin-left:5px;vertical-align:1px}
@@ -236,6 +238,7 @@ form[hidden]{display:none}
 .ausel:invalid{color:var(--field-ph)}
 .notice-item .meta{margin:0 0 4px}
 .notice-item .ntext{margin:0;font-size:16px;white-space:pre-wrap;word-break:break-word;padding-right:40px}
+.tag.ncat-1{color:var(--hane);border-color:var(--hane)}
 .tag.ncat-0{color:#0A0F2C;background:#FFFFFF;border-color:#FFFFFF}
 
 .showtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px -2px 4px;padding:2px}
@@ -329,7 +332,7 @@ form[hidden]{display:none}
 
   <header class="sky" aria-label="오르비테">
     <div class="orbitwrap">
-      <svg id="orbit" viewBox="0 0 360 230" role="img" aria-label="네 멤버가 각자의 궤도를 도는 그림"></svg>
+      <svg id="orbit" viewBox="0 44 360 148" role="img" aria-label="네 멤버가 각자의 궤도를 도는 그림"></svg>
       <div class="wordmark"><span class="wm">ORBITte</span></div>
     </div>
     <div class="subtitle-note">🌠 멤버 노트</div>
@@ -369,14 +372,13 @@ form[hidden]{display:none}
     <button data-tab="regs">공지</button>
     <button data-tab="design">디자인</button>
     <button data-tab="songs">곡</button>
-    <button data-tab="parts">파트</button>
+    <button data-tab="parts">확정곡</button>
     <button data-tab="members">멤버</button>
   </nav>
 
   <section id="design">
-    <h2>디자인 레퍼런스</h2>
+    <div class="sechead"><h2>디자인 레퍼런스</h2><button class="opener" data-open="design" aria-expanded="false">+ 올리기</button></div>
     <p class="lead">의상, 무대, 굿즈, SNS 참고 사진과 링크</p>
-    <button class="opener" data-open="design" aria-expanded="false">+ 레퍼런스 올리기</button>
     <form data-col="design" hidden>
       <div class="row">
         <input name="title" placeholder="제목 (예: 앵콜 의상 별자리 패턴)" required maxlength="80">
@@ -397,9 +399,8 @@ form[hidden]{display:none}
   </section>
 
   <section id="songs">
-    <h2>곡 레퍼런스</h2>
+    <div class="sechead"><h2>곡 레퍼런스</h2><button class="opener" data-open="songs" aria-expanded="false">+ 올리기</button></div>
     <p class="lead">커버 후보, 안무 참고, 분위기 참고 곡 모음</p>
-    <button class="opener" data-open="songs" aria-expanded="false">+ 곡 올리기</button>
     <form data-col="songs" hidden>
       <div class="row">
         <input name="title" placeholder="곡명" required maxlength="80">
@@ -419,9 +420,8 @@ form[hidden]{display:none}
   </section>
 
   <section id="parts">
-    <h2>파트 나누기</h2>
-    <p class="lead">가사를 붙여넣고 줄마다 멤버 색 선택, 다 고르면 "파트 확정". 여러 명을 고르면 합창 색으로 표시</p>
-    <button class="opener" data-open="parts" aria-expanded="false">+ 곡 추가</button>
+    <div class="sechead"><h2>확정곡</h2><button class="opener" data-open="parts" aria-expanded="false">+ 추가</button></div>
+    <p class="lead">공연에서 부르기로 확정한 곡과 파트 분배. 줄마다 멤버 색을 고르고 "파트 확정", 여러 명은 합창 색으로 표시</p>
     <form data-col="parts" hidden>
       <div class="row">
         <input name="title" id="ptTitle" placeholder="곡명 (일본어)" required maxlength="80">
@@ -439,11 +439,10 @@ form[hidden]{display:none}
   </section>
 
   <section id="regs">
-    <h2>공지</h2>
-    <p class="lead">멤버 공지와 정해진 것, 팬 안내용 레귤레이션</p>
-    <button class="opener" data-open="regs" aria-expanded="false">+ 공지 쓰기</button>
+    <div class="sechead"><h2>공지</h2><button class="opener" data-open="regs" aria-expanded="false">+ 쓰기</button></div>
+    <p class="lead">멤버 공지와 정해진 것, 아직 이야기 중인 것, 팬 안내용 레귤레이션</p>
     <form data-col="regs" hidden>
-      <select name="cat"><option>공지</option><option>레귤레이션</option></select>
+      <select name="cat"><option>공지</option><option>토론중</option><option>레귤레이션</option></select>
       <textarea name="text" placeholder="내용 (예: 정산 비율 8:2 확정, 2샷 체키 2,000원)" required maxlength="1000"></textarea>
       <button class="submit">올리기</button>
     </form>
@@ -828,11 +827,11 @@ function buildFilter(col, opts){
 const kindOpts = col => [{v:"전체",label:"전체"}, ...[...document.querySelectorAll(`form[data-col="${col}"] select[name="kind"] option`)].map(o => ({v:o.value,label:o.value}))];
 buildFilter("design", kindOpts("design"));
 buildFilter("songs", kindOpts("songs"));
-buildFilter("regs", [{v:"전체",label:"전체"},{v:"공지",label:"공지"},{v:"레귤레이션",label:"레귤레이션"}]);
+buildFilter("regs", [{v:"전체",label:"전체"},{v:"공지",label:"공지"},{v:"토론중",label:"토론중"},{v:"레귤레이션",label:"레귤레이션"}]);
 
 /* 작성자 */
 const auTag = k => { if (!M[k]) return null; const s = el("span","au","작성자: "), n = el("b",null,M[k].name); n.style.color = `var(${M[k].c})`; s.append(n); return s; };
-function auSelect(val){ const sel = el("select"); sel.className = "ausel"; [["","작성자"], ...KEYS.map(k => [k, `${M[k].heart} ${M[k].name}`])].forEach(([v,l]) => { const o = el("option",null,l); o.value = v; o.selected = v === (val || ""); sel.append(o); }); return sel; }
+function auSelect(val){ const sel = el("select"); sel.className = "ausel"; const cur = M[val] ? val : (M[lsGet("orbitte-author")] ? lsGet("orbitte-author") : ""); [["","작성자"], ...KEYS.map(k => [k, `${M[k].heart} ${M[k].name}`])].forEach(([v,l]) => { const o = el("option",null,l); o.value = v; o.selected = v === cur; sel.append(o); }); sel.addEventListener("change", () => { if (M[sel.value]) lsSet("orbitte-author", sel.value); }); return sel; }
 const lastAu = lsGet("orbitte-author");
 document.querySelectorAll("select.ausel[name=author]").forEach(sel => { if (M[lastAu]) sel.value = lastAu; sel.addEventListener("change", () => { if (M[sel.value]) { lsSet("orbitte-author", sel.value); document.querySelectorAll("select.ausel[name=author]").forEach(o => { if (!o.value) o.value = sel.value; }); } }); });
 
@@ -998,12 +997,12 @@ function renderRefs(col){
 
 /* 공지 · 레귤레이션 */
 const noteEditing = new Set();
-const NCAT = ["공지","레귤레이션"];
+const NCAT = ["공지","토론중","레귤레이션"];
 function renderNotices(){
   const box = $("#list-regs");
   guard(box, () => {
     box.innerHTML = "";
-    const all = data.regs.map(r => ({...r, cat: (r.cat === "공지" || r.cat === "결정사항") ? "공지" : "레귤레이션"}));
+    const all = data.regs.map(r => ({...r, cat: (r.cat === "공지" || r.cat === "결정사항") ? "공지" : r.cat === "토론중" ? "토론중" : "레귤레이션"}));
     const rows = filters.regs === "전체" ? all : all.filter(r => r.cat === filters.regs);
     if (!rows.length) { box.append(el("div","empty", all.length ? "이 분류에는 아직 없음" : "아직 올라온 공지 없음")); return; }
     rows.forEach(r => {
@@ -1048,7 +1047,7 @@ function renderParts(){
   const box = $("#list-parts");
   guard(box, () => {
   box.innerHTML = "";
-  if (!data.parts.length) { box.append(el("div","empty","아직 파트 나눈 곡 없음")); return; }
+  if (!data.parts.length) { box.append(el("div","empty","아직 확정곡 없음")); return; }
   data.parts.forEach(p => {
     const lines = Array.isArray(p.lines) ? p.lines : [];
     const ja = p.lang === "ja";
