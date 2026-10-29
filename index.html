@@ -267,6 +267,9 @@ form[hidden]{display:none}
 .notice-item .meta{margin:0 0 4px}
 .notice-item .ntitle{margin:2px 0 0;font-size:18px;font-weight:700;line-height:1.4;word-break:break-word}
 .notice-item .nbody{margin:6px 0 0;font-size:14px;line-height:1.6;color:var(--muted);white-space:pre-wrap;word-break:break-word}
+.tag.tdone{color:var(--muted);border-color:var(--line)}
+.done-item{opacity:.6}
+.stbtn{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:3px 11px;font-size:13px;cursor:pointer}
 .tag.ncat-1{color:var(--hane);border-color:var(--hane)}
 .tag.ncat-0{color:#0A0F2C;background:#FFFFFF;border-color:#FFFFFF}
 
@@ -484,9 +487,9 @@ form[hidden]{display:none}
 
   <section id="regs">
     <div class="sechead"><h2>공지</h2><button class="opener" data-open="regs" aria-expanded="false">+ 쓰기</button></div>
-    <p class="lead">멤버 공지와 정해진 것, 아직 이야기 중인 것, 팬 안내용 레귤레이션</p>
+    <p class="lead">멤버 공지와 정해진 것, 토론, 팬 안내용 레귤레이션</p>
     <form data-col="regs" hidden>
-      <select name="cat"><option>공지</option><option>토론중</option><option>레귤레이션</option></select>
+      <select name="cat"><option>공지</option><option>토론</option><option>레귤레이션</option></select>
       <input name="title" placeholder="제목 (예: 정산 비율 확정)" required maxlength="80">
       <textarea name="text" placeholder="내용 (선택)" maxlength="2000"></textarea>
       <button class="submit">올리기</button>
@@ -902,7 +905,7 @@ function buildFilter(col, opts){
 const kindOpts = col => [{v:"전체",label:"전체"}, ...[...document.querySelectorAll(`form[data-col="${col}"] select[name="kind"] option`)].map(o => ({v:o.value,label:o.value}))];
 buildFilter("design", kindOpts("design"));
 buildFilter("songs", kindOpts("songs"));
-buildFilter("regs", [{v:"전체",label:"전체"},{v:"공지",label:"공지"},{v:"토론중",label:"토론중"},{v:"레귤레이션",label:"레귤레이션"}]);
+buildFilter("regs", [{v:"전체",label:"전체"},{v:"공지",label:"공지"},{v:"토론",label:"토론"},{v:"레귤레이션",label:"레귤레이션"}]);
 
 /* 작성자 */
 const auTag = k => { if (!M[k]) return null; const s = el("span","au","작성자: "), n = el("b",null,M[k].name); n.style.color = `var(${M[k].c})`; s.append(n); return s; };
@@ -1092,8 +1095,8 @@ function renderRefs(col){
 
 /* 공지 · 레귤레이션 */
 const noteEditing = new Set();
-const NCAT = ["공지","토론중","레귤레이션"];
-/* 토론중 댓글 */
+const NCAT = ["공지","토론","레귤레이션"];
+/* 토론 댓글 */
 const cmOpen = new Set(), cmEditing = new Set();
 function commentBox(r, cm){
   const wrap = el("div","cmbox");
@@ -1131,8 +1134,11 @@ function renderNotices(){
   const box = $("#list-regs");
   guard(box, () => {
     box.innerHTML = "";
-    const all = data.regs.map(r => ({...r, cat: (r.cat === "공지" || r.cat === "결정사항") ? "공지" : r.cat === "토론중" ? "토론중" : "레귤레이션"}));
-    const rows = filters.regs === "전체" ? all : all.filter(r => r.cat === filters.regs);
+    const all = data.regs.map(r => ({...r, cat: (r.cat === "공지" || r.cat === "결정사항") ? "공지" : (r.cat === "토론중" || r.cat === "토론") ? "토론" : "레귤레이션"}));
+    const isDone = r => r.cat === "토론" && r.status === "완료";
+    const live = r => r.cat === "토론" && !isDone(r);
+    let rows = filters.regs === "전체" ? all : all.filter(r => r.cat === filters.regs);
+    rows = rows.map((r,i) => [r,i]).sort((a,b) => (isDone(a[0]) - isDone(b[0])) || (live(b[0]) - live(a[0])) || (a[1] - b[1])).map(x => x[0]);
     if (!rows.length) { box.append(el("div","empty", all.length ? "이 분류에는 아직 없음" : "아직 올라온 공지 없음")); return; }
     rows.forEach(r => {
       const it = el("div","item notice-item");
@@ -1145,18 +1151,21 @@ function renderNotices(){
         sv.onclick = () => { if (!ti.value.trim() && !t.value.trim()) { notice("제목 입력 필요"); return; } noteEditing.delete(r.id); notice(""); store.update("regs", r.id, {cat:k.value, title:ti.value.trim(), text:t.value.trim()}).catch(fail); };
         br.append(c, sv); it.classList.add("editing"); it.append(k, ti, t, br); box.append(it); return;
       }
-      const meta = el("div","meta"); meta.append(el("span","tag ncat-" + NCAT.indexOf(r.cat), r.cat));
+      const meta = el("div","meta");
+      if (r.cat === "토론") { meta.append(el("span", "tag " + (isDone(r) ? "tdone" : "ncat-1"), isDone(r) ? "토론완료" : "토론중")); if (isDone(r)) it.classList.add("done-item"); }
+      else meta.append(el("span","tag ncat-" + NCAT.indexOf(r.cat), r.cat));
       const ntitle = r.title || (r.text || "").split("\n")[0], nbody = r.title ? (r.text || "") : (r.text || "").split("\n").slice(1).join("\n").trim();
       it.append(meta, el("h3","ntitle",ntitle));
       if (nbody) it.append(el("p","nbody",nbody));
       const cm = data.comments.filter(c => c.nid === r.id);
       const acts = el("div","itemacts");
-      if (r.cat === "토론중" || cm.length) {
+      if (r.cat === "토론" || cm.length) {
         const open = cmOpen.has(r.id), tb = el("button","cmtoggle" + (open ? " on" : ""), `💬 댓글 ${cm.length}`);
         tb.setAttribute("aria-expanded", String(open));
         tb.onclick = () => { open ? cmOpen.delete(r.id) : cmOpen.add(r.id); renderNotices(); };
         acts.append(tb);
       }
+      if (r.cat === "토론" && writable()) { const st = el("button","stbtn", isDone(r) ? "다시 토론중으로" : "토론 완료"); st.onclick = () => store.update("regs", r.id, {cat:"토론", status: isDone(r) ? "진행" : "완료"}).catch(fail); acts.append(st); }
       acts.append(edDel(() => { noteEditing.add(r.id); renderNotices(); }, () => { store.remove("regs", r.id).catch(fail); cm.forEach(c => store.remove("comments", c.id).catch(() => {})); }));
       it.append(acts);
       if (cmOpen.has(r.id)) it.append(commentBox(r, cm));
