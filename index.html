@@ -251,6 +251,11 @@ form[hidden]{display:none}
 .cmacts .textbtn{font-size:12px}
 .cmdel{border:0;background:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0;margin-left:auto}
 .cm p{margin:0;font-size:15px;white-space:pre-wrap;word-break:break-word}
+.linkbtn{border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 0}
+.linkbtn:hover{color:var(--ink)}
+.notice-item.flash{animation:flash 2.4s ease-out}
+@keyframes flash{0%,30%{box-shadow:0 0 0 2px #FFFFFF,0 0 24px rgba(185,192,245,.6)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.notice-item.flash{animation:none;box-shadow:0 0 0 2px #FFFFFF}}
 .inlink{color:var(--accent);text-decoration:underline;text-underline-offset:2px;word-break:break-all}
 .cmimg{display:block;width:140px;height:140px;padding:0;border:0;border-radius:12px;overflow:hidden;margin-top:4px;cursor:zoom-in;background:#1B2360}
 .cmimg img{display:block;width:100%;height:100%;object-fit:cover}
@@ -278,6 +283,13 @@ form[hidden]{display:none}
 .yt{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
 .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .ytlink{justify-self:end;font-size:13px;color:var(--accent);text-decoration:none}
+.more{position:relative}
+.morebtn{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;width:34px;height:30px;font-size:16px;line-height:1;cursor:pointer}
+.moremenu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:#141B46;border:1px solid var(--line);border-radius:12px;padding:6px;display:grid;min-width:130px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.moremenu[hidden]{display:none}
+.moremenu button{border:0;background:none;color:var(--ink);text-align:left;padding:8px 10px;border-radius:8px;font-size:14px;cursor:pointer}
+.moremenu button:hover{background:rgba(185,192,245,.12)}
+.moremenu .danger{color:var(--danger)}
 .formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
 .au b{font-weight:500}
 .seg-t.unset{font-style:italic}
@@ -487,7 +499,7 @@ form[hidden]{display:none}
         <input name="artist" placeholder="아티스트" maxlength="60">
       </div>
       <div class="row">
-        <select name="kind"><option>커버 후보</option><option>안무 참고</option><option>분위기 참고</option><option>기타</option></select>
+        <select name="kind"><option>커버 후보</option><option>참고</option></select>
         <input name="url" type="text" inputmode="url" autocapitalize="off" placeholder="링크 (선택)">
       </div>
       <select name="author" class="ausel" required><option value="">작성자</option><option value="irin">❤️ 아이린</option><option value="hane">🧡 하네</option><option value="remi">🩵 레미</option><option value="sena">🤍 세나</option></select>
@@ -911,14 +923,23 @@ KEYS.forEach(k => { const s = el("span"), i = el("i"); i.style.background = `var
 
 /* ===== 탭 ===== */
 const TABS = ["regs","design","songs","parts","members"];
+let viewReady = false;
+const ssGet = k => { try { return JSON.parse(sessionStorage.getItem(k) || "null"); } catch(e) { return null; } };
+const ssSet = (k,v) => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+function saveView(){ ssSet("orbitte-view", {tab: document.querySelector("nav button[aria-current=page]")?.dataset.tab || "regs", filters}); }
 function showTab(t){
   if (!TABS.includes(t)) t = TABS[0];
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === t));
   document.querySelectorAll("nav button").forEach(b => { if (b.dataset.tab === t) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
   if (location.hash.slice(1) !== t) history.replaceState(null,"","#"+t);
+  if (viewReady) saveView();
 }
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+let flashId = null, flashUntil = 0;
+let pendingPost = (location.hash.match(/^#n-([\w-]+)$/) || [])[1] || null;
 showTab("regs");
+if (pendingPost) history.replaceState(null, "", "#n-" + pendingPost);
+window.addEventListener("hashchange", () => { const m = location.hash.match(/^#n-([\w-]+)$/); if (m) { pendingPost = m[1]; showTab("regs"); renderNotices(); } });
 
 /* ===== 공통 ===== */
 function edDel(onEdit, onDel){
@@ -933,14 +954,22 @@ function buildFilter(col, opts){
   const box = document.querySelector(`[data-filter="${col}"]`); box.innerHTML = "";
   opts.forEach(o => {
     const b = el("button",null,o.label); b.setAttribute("aria-pressed", String(filters[col] === o.v));
-    b.onclick = () => { filters[col] = o.v; buildFilter(col,opts); paint(col); };
+    b.onclick = () => { filters[col] = o.v; buildFilter(col,opts); paint(col); saveView(); };
     box.append(b);
   });
 }
 const kindOpts = col => [{v:"전체",label:"전체"}, ...[...document.querySelectorAll(`form[data-col="${col}"] select[name="kind"] option`)].map(o => ({v:o.value,label:o.value}))];
 buildFilter("design", kindOpts("design"));
 buildFilter("songs", kindOpts("songs"));
-buildFilter("regs", [{v:"공지",label:"공지"},{v:"토론",label:"토론"},{v:"레귤레이션",label:"레귤레이션"}]);
+const REG_OPTS = [{v:"공지",label:"공지"},{v:"토론",label:"토론"},{v:"레귤레이션",label:"레귤레이션"}];
+{ const v = ssGet("orbitte-view");
+  if (v && !pendingPost) {
+    if (v.filters) ["design","songs","regs"].forEach(c => { if (v.filters[c]) filters[c] = v.filters[c]; });
+    if (!REG_OPTS.some(o => o.v === filters.regs)) filters.regs = "공지";
+    buildFilter("design", kindOpts("design")); buildFilter("songs", kindOpts("songs"));
+    if (TABS.includes(v.tab)) showTab(v.tab);
+  } viewReady = true; }
+buildFilter("regs", REG_OPTS);
 
 /* 작성자 */
 const auTag = k => { if (!M[k]) return null; const s = el("span","au","작성자: "), n = el("b",null,M[k].name); n.style.color = `var(${M[k].c})`; s.append(n); return s; };
@@ -990,6 +1019,7 @@ document.querySelectorAll(".sortbtn").forEach(b => {
   b.onclick = e => { e.stopPropagation(); menu.hidden = !menu.hidden; b.setAttribute("aria-expanded", String(!menu.hidden)); };
   menu.addEventListener("click", e => e.stopPropagation());
 });
+document.addEventListener("click", () => document.querySelectorAll(".moremenu").forEach(m => m.hidden = true));
 document.addEventListener("click", () => document.querySelectorAll(".sortmenu").forEach(m => { if (!m.hidden) { m.hidden = true; document.querySelector(`.sortbtn[data-col="${m.dataset.col}"]`).setAttribute("aria-expanded","false"); } }));
 const sorted = (col, rows) => {
   const st = sortState[col]; let r = st.au ? rows.filter(x => x.author === st.au) : rows.slice();
@@ -1098,14 +1128,15 @@ function renderRefs(col){
   const box = $("#list-"+col);
   guard(box, () => {
     box.innerHTML = "";
-    const rows = sorted(col, filters[col] === "전체" ? data[col] : data[col].filter(r => r.kind === filters[col]));
+    const kindOf = r => col === "songs" ? (r.kind === "커버 후보" ? "커버 후보" : "참고") : r.kind;
+    const rows = sorted(col, filters[col] === "전체" ? data[col] : data[col].filter(r => kindOf(r) === filters[col]));
     if (!rows.length) { box.append(el("div","empty", data[col].length ? "이 분류에는 아직 없음" : "아직 곡 레퍼런스 없음")); return; }
     rows.forEach(r => {
       const it = el("div","item");
       if (songEditing.has(r.id) && writable()) {
         const t = el("input"); t.value = r.title; t.placeholder = "곡명"; t.maxLength = 80;
         const a = el("input"); a.value = r.artist || ""; a.placeholder = "아티스트"; a.maxLength = 60;
-        const k = el("select"); [...document.querySelectorAll('form[data-col="songs"] select[name="kind"] option')].forEach(o => { const op = el("option",null,o.value); op.selected = o.value === r.kind; k.append(op); });
+        const k = el("select"); [...document.querySelectorAll('form[data-col="songs"] select[name="kind"] option')].forEach(o => { const op = el("option",null,o.value); op.selected = o.value === kindOf(r); k.append(op); });
         const u = el("input"); u.value = r.url || ""; u.placeholder = "링크 (선택)"; u.inputMode = "url"; u.autocapitalize = "off";
         const n = el("textarea"); n.value = r.note || ""; n.placeholder = "메모 (선택)"; n.maxLength = 1000;
         const au = auSelect(r.author);
@@ -1117,7 +1148,7 @@ function renderRefs(col){
       }
       const h = el("h3",null,r.title);
       if (r.artist) { const a = el("span",null,`  ${r.artist}`); a.style.color = "var(--muted)"; a.style.fontWeight = "400"; h.append(a); }
-      const meta = el("div","meta"); meta.append(el("span","tag",r.kind)); const sa = auTag(r.author); if (sa) meta.append(sa);
+      const meta = el("div","meta"); meta.append(el("span","tag",kindOf(r))); const sa = auTag(r.author); if (sa) meta.append(sa);
       it.append(h, meta);
       if (r.note) it.append(el("p",null,r.note));
       linkOrText(it, r.url);
@@ -1131,6 +1162,13 @@ function renderRefs(col){
 /* 공지 · 레귤레이션 */
 const noteEditing = new Set();
 const NCAT = ["공지","토론","레귤레이션"];
+/* 글 링크 복사 */
+async function copyPostLink(id){
+  const url = location.origin + location.pathname + "#n-" + id;
+  try { await navigator.clipboard.writeText(url); notice("링크 복사됨. 카톡에 붙여넣으면 이 글로 바로 이동"); }
+  catch(e) { window.prompt("이 링크를 복사해서 공유", url); }
+}
+
 /* 글 속 링크를 누를 수 있게 */
 function linkify(text, cls){
   const p = el("p", cls || null), re = /(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+|(?:[a-z0-9-]+\.)+(?:com|net|org|kr|jp|io|me|co|xyz|app|dev|gg|tv|ly|link|site)(?:\/[^\s<>"']*)?)/gi;
@@ -1229,11 +1267,13 @@ function renderNotices(){
     const all = data.regs.map(r => ({...r, cat: (r.cat === "공지" || r.cat === "결정사항") ? "공지" : (r.cat === "토론중" || r.cat === "토론") ? "토론" : "레귤레이션"}));
     const isDone = r => r.cat === "토론" && r.status === "완료";
     const live = r => r.cat === "토론" && !isDone(r);
+    let target = null;
+    if (pendingPost) { target = all.find(x => x.id === pendingPost); if (target && target.cat !== filters.regs) { filters.regs = target.cat; buildFilter("regs", REG_OPTS); } if (target) { cmOpen.add(target.id); noteEditing.delete(target.id); } }
     let rows = filters.regs === "전체" ? all : all.filter(r => r.cat === filters.regs);
     rows = rows.map((r,i) => [r,i]).sort((a,b) => (isDone(a[0]) - isDone(b[0])) || (live(b[0]) - live(a[0])) || (a[1] - b[1])).map(x => x[0]);
     if (!rows.length) { box.append(el("div","empty", `아직 올라온 ${filters.regs} 없음`)); return; }
     rows.forEach(r => {
-      const it = el("div","item notice-item");
+      const it = el("div","item notice-item"); it.id = "n-" + r.id; if (r.id === flashId && Date.now() < flashUntil) it.classList.add("flash");
       if (noteEditing.has(r.id) && writable()) {
         const k = el("select"); NCAT.forEach(c => { const o = el("option",null,c); o.selected = c === r.cat; k.append(o); });
         const ti = el("input"); ti.value = r.title || ""; ti.placeholder = "제목"; ti.maxLength = 80;
@@ -1262,11 +1302,17 @@ function renderNotices(){
         meta.append(tb);
       }
       if (r.cat === "토론" && writable()) { const st = el("button","stbtn", isDone(r) ? "토론중으로" : "토론 완료"); st.onclick = () => store.update("regs", r.id, {cat:"토론", status: isDone(r) ? "진행" : "완료"}).catch(fail); acts.append(st); }
+      const lk = el("button","linkbtn","🔗 링크"); lk.setAttribute("aria-label","이 글 링크 복사"); lk.onclick = () => copyPostLink(r.id); acts.append(lk);
       acts.append(edDel(() => { noteEditing.add(r.id); renderNotices(); }, () => { store.remove("regs", r.id).catch(fail); cm.forEach(c => store.remove("comments", c.id).catch(() => {})); }));
       it.append(acts);
       if (cmOpen.has(r.id)) it.append(commentBox(r, cm));
       box.append(it);
     });
+    if (target) {
+      pendingPost = null; flashId = target.id; flashUntil = Date.now() + 2600;
+      const n0 = document.getElementById("n-" + target.id); if (n0) n0.classList.add("flash");
+      setTimeout(() => { const node = document.getElementById("n-" + flashId); if (node) node.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); }, 250);
+    }
   });
 }
 
@@ -1380,8 +1426,14 @@ function renderParts(){
     });
     const foot = el("div","partfoot");
     if (writable()) {
-      const le = el("button","textbtn","곡·가사 수정"); le.onclick = () => { lyricEditing.add(p.id); renderParts(); }; foot.append(le);
-      const dl = el("button","textbtn","곡 삭제"); dl.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("parts", p.id).catch(fail); }; foot.append(dl);
+      const mw = el("span","more"), mb = el("button","morebtn","⋯"); mb.setAttribute("aria-label","더보기"); mb.setAttribute("aria-haspopup","true");
+      const menu = el("div","moremenu"); menu.hidden = true;
+      const le = el("button",null,"곡·가사 수정"); le.onclick = () => { lyricEditing.add(p.id); renderParts(); };
+      const dl = el("button","danger","곡 삭제"); dl.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("parts", p.id).catch(fail); };
+      menu.append(le, dl);
+      mb.onclick = e => { e.stopPropagation(); document.querySelectorAll(".moremenu").forEach(m => { if (m !== menu) m.hidden = true; }); menu.hidden = !menu.hidden; };
+      menu.addEventListener("click", e => e.stopPropagation());
+      mw.append(mb, menu); foot.append(mw);
       const t = el("button", editing ? "submit" : "textbtn", editing ? "파트 확정" : "파트 수정");
       t.onclick = () => {
         if (editing) { partEditing.delete(p.id); store.update("parts", p.id, {locked:true}).catch(fail); }
