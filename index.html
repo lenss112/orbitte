@@ -303,6 +303,11 @@ form[hidden]{display:none}
 .screw input:nth-child(3),.screw input:nth-child(5){grid-column:1/-1}
 .screw .textbtn{grid-column:1/-1;justify-self:end}
 .officialcard .add{border:1px dashed var(--line);background:none;border-radius:10px;padding:7px;width:100%;color:var(--muted);cursor:pointer;font-size:14px}
+.newb{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;line-height:1;color:#0A0F2C;background:#FF6B81;border-radius:999px;padding:3px 6px;vertical-align:2px}
+.newb.onimg{position:absolute;top:8px;left:8px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.newc{font-size:11px;font-weight:700;color:#0A0F2C;background:#FF6B81;border-radius:999px;padding:1px 6px}
+nav button.hasnew{position:relative}
+nav button.hasnew::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#FF6B81;box-shadow:0 0 6px #FF6B81}
 .formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
 .au b{font-weight:500}
 .seg-t.unset{font-style:italic}
@@ -939,11 +944,36 @@ KEYS.forEach(k => { const s = el("span"), i = el("i"); i.style.background = `var
 /* ===== 탭 ===== */
 const TABS = ["regs","design","songs","parts","members"];
 let viewReady = false;
+/* NEW 표시: 기기마다 마지막으로 본 시간 기억 */
+const SEEN_KEY = "orbitte-seen";
+let seen = (() => { try { return JSON.parse(lsGet(SEEN_KEY) || "null"); } catch(e) { return null; } })();
+if (!seen) { const n = Date.now(); seen = {init:n, regs:n, design:n, songs:n, parts:n, cm:{}}; lsSet(SEEN_KEY, JSON.stringify(seen)); }
+if (!seen.cm) seen.cm = {};
+const mine = new Set((() => { try { return JSON.parse(lsGet("orbitte-mine") || "[]"); } catch(e) { return []; } })());
+const saveSeen = () => lsSet(SEEN_KEY, JSON.stringify(seen));
+const markMine = ts => { mine.add(ts); lsSet("orbitte-mine", JSON.stringify([...mine].slice(-300))); };
+const isNew = (col, r) => (r.createdAt || 0) > (seen[col] || seen.init) && !mine.has(r.createdAt);
+const isNewCm = c => (c.createdAt || 0) > (seen.cm[c.nid] || seen.init) && !mine.has(c.createdAt);
+const newB = () => el("span","newb","NEW");
+let curTab = null, tabOpenedAt = Date.now();
+const SEEN_COLS = ["regs","design","songs","parts"];
+function leaveTab(){ if (curTab && SEEN_COLS.includes(curTab)) { seen[curTab] = Math.max(seen[curTab] || 0, tabOpenedAt); saveSeen(); } }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") leaveTab(); else tabOpenedAt = Date.now(); });
+window.addEventListener("pagehide", leaveTab);
+function updateNavBadges(){
+  SEEN_COLS.forEach(col => {
+    const b = document.querySelector(`nav button[data-tab="${col}"]`); if (!b) return;
+    let n = (data[col] || []).filter(r => isNew(col, r)).length;
+    if (col === "regs") n += (data.comments || []).filter(isNewCm).length;
+    b.classList.toggle("hasnew", n > 0 && curTab !== col);
+  });
+}
 const ssGet = k => { try { return JSON.parse(sessionStorage.getItem(k) || "null"); } catch(e) { return null; } };
 const ssSet = (k,v) => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
 function saveView(){ ssSet("orbitte-view", {tab: document.querySelector("nav button[aria-current=page]")?.dataset.tab || "regs", filters}); }
 function showTab(t){
   if (!TABS.includes(t)) t = TABS[0];
+  if (curTab !== t) { leaveTab(); curTab = t; tabOpenedAt = Date.now(); if (viewReady) { COLS.forEach(c => { if (c !== "comments") paint(c); }); updateNavBadges(); } }
   document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === t));
   document.querySelectorAll("nav button").forEach(b => { if (b.dataset.tab === t) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
   if (location.hash.slice(1) !== t) history.replaceState(null,"","#"+t);
@@ -1061,6 +1091,7 @@ function renderDesign(){
     const card = el("div","dcard"); card.tabIndex = 0; card.setAttribute("role","button"); card.setAttribute("aria-label", `${r.title} 크게 보기`);
     const cv = el("div","dcover" + (imgs.length ? "" : " noimg"));
     if (imgs.length) { cv.append(driveImg(imgs[0], 600, r.title)); if (imgs.length > 1) cv.append(el("span","dcount",`+${imgs.length-1}`)); }
+    if (isNew("design", r)) { const nb = newB(); nb.classList.add("onimg"); cv.append(nb); }
     else cv.append(el("span",null,r.title));
     const info = el("div","dinfo"); info.append(el("h3",null,r.title));
     const at = auTag(r.author); if (at) info.append(at);
@@ -1171,7 +1202,7 @@ function renderRefs(col){
       }
       const h = el("h3",null,r.title);
       if (r.artist) { const a = el("span",null,`  ${r.artist}`); a.style.color = "var(--muted)"; a.style.fontWeight = "400"; h.append(a); }
-      const meta = el("div","meta"); meta.append(el("span","tag",kindOf(r))); const sa = auTag(r.author); if (sa) meta.append(sa);
+      const meta = el("div","meta"); meta.append(el("span","tag",kindOf(r))); if (isNew(col, r)) meta.append(newB(), " "); const sa = auTag(r.author); if (sa) meta.append(sa);
       it.append(h, meta);
       if (r.note) it.append(el("p",null,r.note));
       linkOrText(it, r.url);
@@ -1224,11 +1255,12 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#imgv"
 const cmOpen = new Set(), cmEditing = new Set(), cmBusy = new Set(), cmDraft = new Map(), cmFile = new Map();
 function commentBox(r, cm){
   const wrap = el("div","cmbox");
+  setTimeout(() => { seen.cm[r.id] = Date.now(); saveSeen(); updateNavBadges(); }, 0);
   if (!cm.length) wrap.append(el("div","cmempty","아직 댓글 없음"));
   cm.forEach(c => {
     const row = el("div","cm"), head = el("div","cmhead");
     const nm = el("b",null, M[c.author] ? M[c.author].name : "누군가"); if (M[c.author]) nm.style.color = `var(${M[c.author].c})`;
-    head.append(nm);
+    head.append(nm); if (isNewCm(c)) head.append(newB());
     if (cmEditing.has(c.id) && writable()) {
       const t = el("textarea"); t.value = c.text; t.maxLength = 1000;
       const br = el("div","cmrow"), cc = el("button","textbtn","취소"), sv = el("button","submit","저장");
@@ -1274,7 +1306,7 @@ function commentBox(r, cm){
         cmBusy.delete(r.id);
       }
       cmDraft.delete(r.id); cmFile.delete(r.id); t.value = ""; t.blur();
-      store.add("comments", {nid:r.id, author:au.value, text, img, createdAt:Date.now()}).catch(fail);
+      const cts = Date.now(); markMine(cts); store.add("comments", {nid:r.id, author:au.value, text, img, createdAt:cts}).catch(fail);
       renderNotices();
     };
     t.onkeydown = e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) go.click(); };
@@ -1313,6 +1345,7 @@ function renderNotices(){
         meta.append(st); if (isDone(r)) it.classList.add("done-item");
       }
       else meta.append(el("span","tag ncat-" + NCAT.indexOf(r.cat), r.cat));
+      if (isNew("regs", r)) meta.append(newB());
       const ntitle = r.title || (r.text || "").split("\n")[0], nbody = r.title ? (r.text || "") : (r.text || "").split("\n").slice(1).join("\n").trim();
       it.append(meta, el("h3","ntitle",ntitle));
       if (nbody) it.append(linkify(nbody, "nbody"));
@@ -1321,7 +1354,9 @@ function renderNotices(){
       if (r.cat === "토론" || cm.length) {
         const open = cmOpen.has(r.id), tb = el("button","cmpeek" + (open ? " on" : ""));
         tb.setAttribute("aria-expanded", String(open)); tb.setAttribute("aria-label", `댓글 ${cm.length}개 ${open ? "접기" : "보기"}`);
-        tb.append(el("span","cmn", `💬 댓글 ${cm.length}`), el("span","cmchev", open ? "▴" : "▾"));
+        tb.append(el("span","cmn", `💬 댓글 ${cm.length}`));
+        const nc = cm.filter(isNewCm).length; if (nc && !open) tb.append(el("span","newc", `+${nc}`));
+        tb.append(el("span","cmchev", open ? "▴" : "▾"));
         tb.onclick = () => { open ? cmOpen.delete(r.id) : cmOpen.add(r.id); renderNotices(); };
         meta.append(tb);
       }
@@ -1374,6 +1409,7 @@ function renderParts(){
     d.ontoggle = () => d.open ? openParts.add(p.id) : openParts.delete(p.id);
     const sm = el("summary"), ttl = el("h3",null,p.title);
     if (ja && p.title_ko) ttl.append(el("span","subtitle", p.title_ko));
+    if (isNew("parts", p)) ttl.prepend(newB(), " ");
     if (p.artist) ttl.append(el("span","artist", p.artist));
     sm.append(ttl);
     const counts = el("span","counts");
@@ -1644,6 +1680,7 @@ function paint(col){
   if (col === "design" || col === "songs") renderRefs(col);
   else if (col === "regs" || col === "comments") renderNotices();
   else if (col === "parts") renderParts();
+  updateNavBadges();
 }
 function paintKV(k){
   if (k === "setlist") renderSet();
@@ -1680,6 +1717,7 @@ document.querySelectorAll("form[data-col]").forEach(f => f.addEventListener("sub
   }
   notice(""); f.reset(); setForm(col, false); if (col === "design") showPrev(); if (col === "parts" && langSel) langSel.onchange();
   f.querySelectorAll("select.ausel").forEach(sel => { const v = lsGet("orbitte-author"); if (M[v]) sel.value = v; });
+  markMine(row.createdAt);
   store.add(col, row).catch(e => notice(e?.code === "quota_exceeded" ? "저장 공간 가득 참. 오래된 항목 삭제 필요" : "저장 실패. 잠시 후 다시 시도"));
 }));
 
