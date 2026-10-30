@@ -235,11 +235,15 @@ form[hidden]{display:none}
 .teamsns .tlabel{font-size:15px;font-weight:600;color:var(--ink)}
 .teamsns .thandle{font-size:14px;color:var(--muted)}
 .notice-item .meta{display:flex;align-items:center;gap:8px;min-width:0}
-.cmpeek{display:flex;align-items:center;gap:6px;min-width:0;flex:1;border:0;background:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0;text-align:left}
+.cmpeek{display:inline-flex;align-items:center;gap:6px;flex:none;border:1px solid #4A55A0;background:rgba(185,192,245,.1);color:var(--ink);font-size:12.5px;cursor:pointer;padding:3px 10px 3px 11px;border-radius:999px;transition:background .15s}
+.cmpeek:hover{background:rgba(185,192,245,.2)}
+.cmpeek:active{transform:scale(.96)}
+.cmchev{font-size:10px;color:var(--muted)}
 .cmpeek .cmn{flex:none}
 .cmpeek .cmpv{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
 .cmpeek .cmpv b{font-weight:500}
-.cmpeek.on .cmn{color:var(--ink)}
+.cmpeek.on{background:#FFFFFF;color:#0A0F2C;border-color:#FFFFFF}
+.cmpeek.on .cmchev{color:#0A0F2C}
 .cmtoggle{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:3px 11px;font-size:13px;cursor:pointer}
 .cmtoggle.on{background:#FFFFFF;color:#0A0F2C;border-color:#FFFFFF}
 .cmbox{margin-top:10px;border-top:1px solid var(--line);padding-top:10px;display:grid;gap:10px}
@@ -284,12 +288,21 @@ form[hidden]{display:none}
 .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .ytlink{justify-self:end;font-size:13px;color:var(--accent);text-decoration:none}
 .more{position:relative}
-.morebtn{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;width:34px;height:30px;font-size:16px;line-height:1;cursor:pointer}
+.morebtn{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;width:34px;height:28px;font-size:16px;line-height:1;cursor:pointer;flex:none}
 .moremenu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:#141B46;border:1px solid var(--line);border-radius:12px;padding:6px;display:grid;min-width:130px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
 .moremenu[hidden]{display:none}
 .moremenu button{border:0;background:none;color:var(--ink);text-align:left;padding:8px 10px;border-radius:8px;font-size:14px;cursor:pointer}
 .moremenu button:hover{background:rgba(185,192,245,.12)}
 .moremenu .danger{color:var(--danger)}
+.officialcard{margin-top:12px}
+.ohint{font-size:13px;margin:-2px 0 4px}
+.osum{display:grid;gap:4px;font-size:14px}
+.pfsec{font-size:12px;color:var(--muted);letter-spacing:.06em;margin-top:6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.schedit{display:grid;gap:10px}
+.screw{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.screw input:nth-child(3),.screw input:nth-child(5){grid-column:1/-1}
+.screw .textbtn{grid-column:1/-1;justify-self:end}
+.officialcard .add{border:1px dashed var(--line);background:none;border-radius:10px;padding:7px;width:100%;color:var(--muted);cursor:pointer;font-size:14px}
 .formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
 .au b{font-weight:500}
 .seg-t.unset{font-style:italic}
@@ -313,6 +326,8 @@ form[hidden]{display:none}
 .notice-item .nbody{margin:6px 0 0;font-size:14px;line-height:1.6;color:var(--muted);white-space:pre-wrap;word-break:break-word}
 .tag.tdone{color:var(--muted);border-color:var(--line)}
 .done-item{opacity:.6}
+.sttag{cursor:pointer;font-family:inherit;background:none}
+.sttag:active{transform:scale(.96)}
 .stbtn{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:3px 11px;font-size:13px;cursor:pointer}
 .tag.ncat-1{color:var(--hane);border-color:var(--hane)}
 .tag.ncat-0{color:#0A0F2C;background:#FFFFFF;border-color:#FFFFFF}
@@ -942,6 +957,14 @@ if (pendingPost) history.replaceState(null, "", "#n-" + pendingPost);
 window.addEventListener("hashchange", () => { const m = location.hash.match(/^#n-([\w-]+)$/); if (m) { pendingPost = m[1]; showTab("regs"); renderNotices(); } });
 
 /* ===== 공통 ===== */
+function moreMenu(items){
+  const mw = el("span","more"), mb = el("button","morebtn","⋯"); mb.type = "button"; mb.setAttribute("aria-label","더보기"); mb.setAttribute("aria-haspopup","true");
+  const menu = el("div","moremenu"); menu.hidden = true;
+  items.forEach(([label, fn, danger]) => { const b = el("button", danger ? "danger" : null, label); b.type = "button"; b.onclick = () => { menu.hidden = true; fn(); }; menu.append(b); });
+  mb.onclick = e => { e.stopPropagation(); document.querySelectorAll(".moremenu").forEach(m => { if (m !== menu) m.hidden = true; }); menu.hidden = !menu.hidden; };
+  menu.addEventListener("click", e => e.stopPropagation());
+  mw.append(mb, menu); return mw;
+}
 function edDel(onEdit, onDel){
   const g = el("span","rgrp");
   if (!writable()) return g;
@@ -1284,7 +1307,11 @@ function renderNotices(){
         br.append(c, sv); it.classList.add("editing"); it.append(k, ti, t, br); box.append(it); return;
       }
       const meta = el("div","meta");
-      if (r.cat === "토론") { meta.append(el("span", "tag " + (isDone(r) ? "tdone" : "ncat-1"), isDone(r) ? "토론완료" : "토론중")); if (isDone(r)) it.classList.add("done-item"); }
+      if (r.cat === "토론") {
+        const st = el(writable() ? "button" : "span", "tag sttag " + (isDone(r) ? "tdone" : "ncat-1"), (isDone(r) ? "토론완료" : "토론중") + (writable() ? " ⇄" : ""));
+        if (writable()) { st.type = "button"; st.setAttribute("aria-label", isDone(r) ? "토론중으로 바꾸기" : "토론 완료로 바꾸기"); st.onclick = () => store.update("regs", r.id, {cat:"토론", status: isDone(r) ? "진행" : "완료"}).catch(fail); }
+        meta.append(st); if (isDone(r)) it.classList.add("done-item");
+      }
       else meta.append(el("span","tag ncat-" + NCAT.indexOf(r.cat), r.cat));
       const ntitle = r.title || (r.text || "").split("\n")[0], nbody = r.title ? (r.text || "") : (r.text || "").split("\n").slice(1).join("\n").trim();
       it.append(meta, el("h3","ntitle",ntitle));
@@ -1294,17 +1321,14 @@ function renderNotices(){
       if (r.cat === "토론" || cm.length) {
         const open = cmOpen.has(r.id), tb = el("button","cmpeek" + (open ? " on" : ""));
         tb.setAttribute("aria-expanded", String(open)); tb.setAttribute("aria-label", `댓글 ${cm.length}개 ${open ? "접기" : "보기"}`);
-        tb.append(el("span","cmn", `💬 ${cm.length}`));
-        const last = cm[cm.length - 1];
-        if (last && !open) { const pv = el("span","cmpv"); const who = el("b",null, M[last.author] ? M[last.author].name : ""); if (M[last.author]) who.style.color = `var(${M[last.author].c})`; pv.append(who, " ", (last.text || "").split("\n")[0] || "📷 사진"); tb.append(pv); }
-        else if (!last && !open) tb.append(el("span","cmpv","댓글 쓰기"));
+        tb.append(el("span","cmn", `💬 댓글 ${cm.length}`), el("span","cmchev", open ? "▴" : "▾"));
         tb.onclick = () => { open ? cmOpen.delete(r.id) : cmOpen.add(r.id); renderNotices(); };
         meta.append(tb);
       }
-      if (r.cat === "토론" && writable()) { const st = el("button","stbtn", isDone(r) ? "토론중으로" : "토론 완료"); st.onclick = () => store.update("regs", r.id, {cat:"토론", status: isDone(r) ? "진행" : "완료"}).catch(fail); acts.append(st); }
-      const lk = el("button","linkbtn","🔗 링크"); lk.setAttribute("aria-label","이 글 링크 복사"); lk.onclick = () => copyPostLink(r.id); acts.append(lk);
-      acts.append(edDel(() => { noteEditing.add(r.id); renderNotices(); }, () => { store.remove("regs", r.id).catch(fail); cm.forEach(c => store.remove("comments", c.id).catch(() => {})); }));
-      it.append(acts);
+      const items = [["🔗 링크 복사", () => copyPostLink(r.id)]];
+      if (writable()) items.push(["수정", () => { noteEditing.add(r.id); renderNotices(); }], ["삭제", () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("regs", r.id).catch(fail); cm.forEach(c => store.remove("comments", c.id).catch(() => {})); }, true]);
+      const mm = moreMenu(items); mm.style.marginLeft = "auto"; meta.append(mm);
+      if (acts.childElementCount) it.append(acts);
       if (cmOpen.has(r.id)) it.append(commentBox(r, cm));
       box.append(it);
     });
@@ -1453,6 +1477,7 @@ const TEAM_SNS = [
   ["YouTube", "@ORBITte_OFCL", "https://www.youtube.com/@ORBITte_OFCL"],
   ["X", "@ORBITte_OFCL", "https://x.com/ORBITte_OFCL"]
 ];
+const DEFAULT_PHOTO = "사진 촬영 가능 (SNS 업로드 전 멤버 검수 필요)\n동영상 촬영 및 업로드 자유";
 const DEFAULT_PLAYLIST = "https://youtube.com/playlist?list=PL0QGEM77PqplV-AVSoGnxrdba34tZhanm";
 const listId = u => { const m = String(u || "").match(/[?&]list=([\w-]+)/) || String(u || "").match(/^(PL[\w-]+|UU[\w-]+)$/); return m ? m[1] : ""; };
 const profEditing = new Set();
@@ -1507,6 +1532,52 @@ function renderMembers(){
       if (writable()) { const e = el("button","textbtn","수정"); e.style.justifySelf = "end"; e.onclick = () => { profEditing.add("team"); renderMembers(); }; tc.append(e); }
     }
     box.append(tc);
+    /* 오피셜 사이트 관리 */
+    const fan = prof.fan || {};
+    const oc = el("div","mcard officialcard");
+    const oh = el("div","ohead"); oh.append(el("h3",null,"오피셜 사이트 관리")); oc.append(oh);
+    oc.append(el("p","muted ohint","팬에게 공개되는 내용이에요. 레귤레이션은 공지 탭의 레귤레이션 글이 자동으로 올라가요."));
+    if (profEditing.has("fan") && writable()) {
+      const sched = (fan.schedule || []).map(x => ({...x})), list = el("div","schedit");
+      const draw = () => {
+        list.innerHTML = "";
+        sched.forEach((x,i) => {
+          const r = el("div","screw");
+          const d = el("input"); d.type = "date"; d.value = x.date || ""; d.onchange = () => x.date = d.value; d.setAttribute("aria-label","날짜");
+          const tm = el("input"); tm.type = "time"; tm.value = x.time || ""; tm.onchange = () => x.time = tm.value; tm.setAttribute("aria-label","시간");
+          const ti = el("input"); ti.value = x.title || ""; ti.placeholder = "일정 (예: 정기 공연)"; ti.oninput = () => x.title = ti.value;
+          const pl = el("input"); pl.value = x.place || ""; pl.placeholder = "장소"; pl.oninput = () => x.place = pl.value;
+          const lk = el("input"); lk.value = x.link || ""; lk.placeholder = "예매·공지 링크 (선택)"; lk.inputMode = "url"; lk.autocapitalize = "off"; lk.oninput = () => x.link = lk.value;
+          const del = el("button","textbtn","빼기"); del.onclick = () => { sched.splice(i,1); draw(); };
+          r.append(d, tm, ti, pl, lk, del); list.append(r);
+        });
+      };
+      draw();
+      const add = el("button","add","+ 일정 추가"); add.onclick = () => { sched.push({date:"", time:"", title:"", place:"", link:""}); draw(); };
+      const lab = (t, n) => { const l = el("label","pf"); l.append(el("span",null,t), n); return l; };
+      const ph = el("textarea"); ph.value = fan.photo ?? DEFAULT_PHOTO; ph.style.minHeight = "90px"; ph.maxLength = 1500;
+      const fc = el("input"); fc.value = fan.fancam || ""; fc.placeholder = "유튜브 재생목록 링크"; fc.inputMode = "url"; fc.autocapitalize = "off";
+      const tt = el("input"); tt.value = fan.timetree || ""; tt.placeholder = "타임트리 공개 캘린더 링크 (선택)"; tt.inputMode = "url"; tt.autocapitalize = "off";
+      const br = el("div","btnrow"), cc = el("button","textbtn","취소"), sv = el("button","submit","저장");
+      cc.onclick = () => { profEditing.delete("fan"); renderMembers(); };
+      sv.onclick = () => {
+        const out = sched.map(x => ({date:x.date||"", time:x.time||"", title:(x.title||"").trim(), place:(x.place||"").trim(), link:(x.link||"").trim()})).filter(x => x.date || x.title).sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+        profEditing.delete("fan"); notice("");
+        store.setKV("profiles", {...(kv.profiles||{}), fan:{schedule:out, photo:ph.value.trim(), fancam:fc.value.trim(), timetree:tt.value.trim()}}).catch(fail);
+      };
+      br.append(cc, sv);
+      oc.append(el("div","pfsec","스케줄"), list, add, lab("타임트리 공개 캘린더", tt), el("div","pfsec","촬영 규정"), ph, el("div","pfsec","직캠 모음"), lab("직캠 재생목록 링크", fc), br);
+    } else {
+      const up = (fan.schedule || []).filter(x => !x.date || x.date >= TODAY);
+      const sum = el("div","osum");
+      sum.append(el("div",null,`스케줄  다가오는 일정 ${up.length}개`));
+      if (up[0]) sum.append(el("div","muted",`다음: ${up[0].date ? md(up[0].date) : "날짜 미정"} ${up[0].title || ""}`));
+      sum.append(el("div",null,`촬영 규정  ${(fan.photo ?? DEFAULT_PHOTO).split("\n")[0]}`));
+      sum.append(el("div",null,`직캠 모음  ${listId(fan.fancam) ? "재생목록 연결됨" : "아직 없음"}`));
+      oc.append(sum);
+      if (writable()) { const e = el("button","textbtn","수정"); e.style.justifySelf = "end"; e.onclick = () => { profEditing.add("fan"); renderMembers(); }; oc.append(e); }
+    }
+    box.append(oc);
     const lid = listId(prof.playlist ?? DEFAULT_PLAYLIST);
     if (lid && !profEditing.has("team")) {
       const vc = el("div","mcard stagecard"); vc.append(el("h3",null,"스테이지 영상"));
