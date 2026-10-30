@@ -251,8 +251,15 @@ form[hidden]{display:none}
 .cmacts .textbtn{font-size:12px}
 .cmdel{border:0;background:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0;margin-left:auto}
 .cm p{margin:0;font-size:15px;white-space:pre-wrap;word-break:break-word}
-.cmimg{display:block;max-width:220px;border-radius:12px;overflow:hidden;margin-top:4px}
-.cmimg img{display:block;width:100%;height:auto}
+.inlink{color:var(--accent);text-decoration:underline;text-underline-offset:2px;word-break:break-all}
+.cmimg{display:block;width:140px;height:140px;padding:0;border:0;border-radius:12px;overflow:hidden;margin-top:4px;cursor:zoom-in;background:#1B2360}
+.cmimg img{display:block;width:100%;height:100%;object-fit:cover}
+.imgv{position:fixed;inset:0;z-index:45;background:rgba(5,8,28,.92);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 50px) 12px calc(env(safe-area-inset-bottom,0px) + 20px)}
+.imgv[hidden]{display:none}
+.imgvbox{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:100%;max-height:100%}
+.imgvbox img{max-width:100%;max-height:calc(100vh - 140px);object-fit:contain;border-radius:10px}
+.imgvlink{font-size:13px;color:var(--accent);text-decoration:none}
+.imgvclose{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:24px;cursor:pointer;line-height:1}
 .cmpick{position:relative;display:inline-flex;align-items:center;border:1px dashed var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted);cursor:pointer;margin-right:auto}
 .cmpick[hidden]{display:none}
 .cmpick input{position:absolute;width:1px;height:1px;opacity:0}
@@ -530,6 +537,7 @@ form[hidden]{display:none}
   </section>
 
 </div>
+<div class="imgv" id="imgv" hidden role="dialog" aria-modal="true" aria-label="사진 크게 보기"><button class="imgvclose" id="imgvClose" aria-label="닫기">×</button><div class="imgvbox" id="imgvBox"></div></div>
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="디자인 레퍼런스 보기">
   <div class="lbpanel">
     <div class="lbbar"><button class="textbtn" id="lbClose">닫기</button></div>
@@ -1123,6 +1131,34 @@ function renderRefs(col){
 /* 공지 · 레귤레이션 */
 const noteEditing = new Set();
 const NCAT = ["공지","토론","레귤레이션"];
+/* 글 속 링크를 누를 수 있게 */
+function linkify(text, cls){
+  const p = el("p", cls || null), re = /(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+|(?:[a-z0-9-]+\.)+(?:com|net|org|kr|jp|io|me|co|xyz|app|dev|gg|tv|ly|link|site)(?:\/[^\s<>"']*)?)/gi;
+  let last = 0, m; const t = String(text || "");
+  while ((m = re.exec(t))) {
+    let raw = m[0].replace(/[.,!?)\]]+$/, "");
+    if (m.index > last) p.append(t.slice(last, m.index));
+    const u = safeUrl(raw);
+    if (u) { const a = el("a","inlink",raw); a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer"; p.append(a); } else p.append(raw);
+    last = m.index + raw.length; re.lastIndex = last;
+  }
+  if (last < t.length) p.append(t.slice(last));
+  return p;
+}
+
+/* 사진 크게 보기 */
+function openImg(id){
+  const v = $("#imgv"), box = $("#imgvBox"); box.innerHTML = "";
+  box.append(driveImg(id, 1600, "댓글 사진"));
+  const a = el("a","imgvlink","원본 열기 ↗"); a.href = `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`; a.target = "_blank"; a.rel = "noopener noreferrer";
+  box.append(a);
+  v.hidden = false; document.body.style.overflow = "hidden"; $("#imgvClose").focus();
+}
+function closeImg(){ $("#imgv").hidden = true; document.body.style.overflow = ""; }
+$("#imgvClose").onclick = closeImg;
+$("#imgv").addEventListener("click", e => { if (e.target.id === "imgv" || e.target.id === "imgvBox") closeImg(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#imgv").hidden) closeImg(); });
+
 /* 토론 댓글 */
 const cmOpen = new Set(), cmEditing = new Set(), cmBusy = new Set(), cmDraft = new Map(), cmFile = new Map();
 function commentBox(r, cm){
@@ -1141,8 +1177,8 @@ function commentBox(r, cm){
     }
     const g = edDel(() => { cmEditing.add(c.id); renderNotices(); }, () => store.remove("comments", c.id).catch(fail)); g.classList.add("cmacts"); head.append(g);
     row.append(head);
-    if (c.text) row.append(el("p",null,c.text));
-    if (c.img) { const a = el("a","cmimg"); a.href = `https://drive.google.com/file/d/${encodeURIComponent(c.img)}/view`; a.target = "_blank"; a.rel = "noopener noreferrer"; a.append(driveImg(c.img, 600, "댓글 사진")); row.append(a); }
+    if (c.text) row.append(linkify(c.text));
+    if (c.img) { const a = el("button","cmimg"); a.type = "button"; a.setAttribute("aria-label","댓글 사진 크게 보기"); a.append(driveImg(c.img, 400, "댓글 사진")); a.onclick = () => openImg(c.img); row.append(a); }
     wrap.append(row);
   });
   if (writable()) {
@@ -1212,7 +1248,7 @@ function renderNotices(){
       else meta.append(el("span","tag ncat-" + NCAT.indexOf(r.cat), r.cat));
       const ntitle = r.title || (r.text || "").split("\n")[0], nbody = r.title ? (r.text || "") : (r.text || "").split("\n").slice(1).join("\n").trim();
       it.append(meta, el("h3","ntitle",ntitle));
-      if (nbody) it.append(el("p","nbody",nbody));
+      if (nbody) it.append(linkify(nbody, "nbody"));
       const cm = data.comments.filter(c => c.nid === r.id);
       const acts = el("div","itemacts");
       if (r.cat === "토론" || cm.length) {
