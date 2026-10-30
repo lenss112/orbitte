@@ -308,6 +308,13 @@ form[hidden]{display:none}
 .newc{font-size:11px;font-weight:700;color:#0A0F2C;background:#FF6B81;border-radius:999px;padding:1px 6px}
 nav button.hasnew{position:relative}
 nav button.hasnew::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#FF6B81;box-shadow:0 0 6px #FF6B81}
+.cardmore{position:absolute;top:12px;right:12px}
+.teamcard .cardmore{position:static;justify-self:end}
+select.cmau.quiet{width:auto;background:transparent;color:var(--muted);border:1px solid transparent;padding:6px 6px;font-size:13px;color-scheme:dark;cursor:pointer}
+select.cmau.quiet:hover,select.cmau.quiet:focus{border-color:var(--line)}
+select.cmau.quiet option{color:#1A1D3A}
+.settoggle{align-items:center}
+.settoggle .moremenu{top:auto;bottom:calc(100% + 6px)}
 .formfoot{display:flex;justify-content:flex-end;align-items:center;gap:16px}
 .au b{font-weight:500}
 .seg-t.unset{font-style:italic}
@@ -463,7 +470,7 @@ nav button.hasnew::after{content:"";position:absolute;top:6px;right:6px;width:7p
     <ol id="setlist"></ol>
     <button class="add" id="addSlot">칸 추가</button>
     <div class="saved" id="setSaved"></div>
-    <div class="settoggle"><button id="setImg" class="textbtn" hidden>이미지 저장</button><button id="setToggle" class="textbtn" hidden></button></div>
+    <div class="settoggle"><button id="setImg" class="textbtn" hidden>이미지 저장</button><span id="setMore"></span><button id="setToggle" class="textbtn" hidden></button></div>
     </div>
   </div>
 
@@ -718,9 +725,13 @@ function renderSet(){
     boxEl.classList.toggle("viewing", !editing);
     $("#addSlot").hidden = !editing; $("#setSaved").hidden = !editing;
     const tg = $("#setToggle");
-    tg.hidden = !(writable() && cur);
-    tg.textContent = editing ? "완료" : "세트리스트 수정";
-    tg.className = editing ? "submit" : "textbtn";
+    tg.hidden = !(writable() && cur && editing);
+    tg.textContent = "완료"; tg.className = "submit";
+    const smore = $("#setMore"); smore.innerHTML = "";
+    if (writable() && cur && !editing) smore.append(moreMenu([
+      ["세트리스트 수정", () => { setEditing = true; renderSet(); }],
+      ["이 공연 삭제", () => { if (!confirm("정말 삭제하시겠습니까?")) return; shows(); kv.setlist.shows = kv.setlist.shows.filter(s => s.id !== cur.id); selShow = null; setEditing = false; saveSet(); renderSet(); }, true]
+    ]));
     $("#setImg").hidden = editing || !cur || !filled.length;
     const sum = $("#setSum");
     const near = list.find(x => x.id === pickDefault(list));
@@ -767,7 +778,6 @@ function renderSet(){
       const hd = el("span","handle","⠿"); hd.setAttribute("aria-label",`${i+1}번째 칸 꾹 눌러 옮기기`); hd.title = "꾹 눌러서 끌면 순서 변경";
       li.append(hd, inp, seg, x); ol.append(li);
     });
-    const dw = el("div","showdel"); dw.append(del); ol.after(dw);
     enableReorder(ol);
   });
 }
@@ -996,11 +1006,9 @@ function moreMenu(items){
   mw.append(mb, menu); return mw;
 }
 function edDel(onEdit, onDel){
-  const g = el("span","rgrp");
-  if (!writable()) return g;
-  const e = el("button","textbtn","수정"); e.onclick = onEdit;
-  const d = el("button","textbtn","삭제"); d.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; onDel(); };
-  g.append(e, d); return g;
+  if (!writable()) return el("span","rgrp");
+  const m = moreMenu([["수정", onEdit], ["삭제", () => { if (!confirm("정말 삭제하시겠습니까?")) return; onDel(); }, true]]);
+  m.classList.add("rgrp"); return m;
 }
 const filters = {design:"전체", songs:"전체", regs:"공지"};
 function buildFilter(col, opts){
@@ -1275,7 +1283,7 @@ function commentBox(r, cm){
     wrap.append(row);
   });
   if (writable()) {
-    const form = el("div","cmform"), au = auSelect(""), t = el("textarea"); t.placeholder = "댓글"; t.maxLength = 1000; t.rows = 1;
+    const form = el("div","cmform"), au = auSelect(""), t = el("textarea"); au.classList.add("cmau"); const quiet = () => au.classList.toggle("quiet", !!M[au.value]); quiet(); au.addEventListener("change", quiet); au.setAttribute("aria-label","작성자"); t.placeholder = "댓글"; t.maxLength = 1000; t.rows = 1;
     const go = el("button","submit", cmBusy.has(r.id) ? "올리는 중" : "등록"); go.disabled = cmBusy.has(r.id);
     if (cmDraft.has(r.id)) t.value = cmDraft.get(r.id);
     t.oninput = () => cmDraft.set(r.id, t.value);
@@ -1490,16 +1498,16 @@ function renderParts(){
       const menu = el("div","moremenu"); menu.hidden = true;
       const le = el("button",null,"곡·가사 수정"); le.onclick = () => { lyricEditing.add(p.id); renderParts(); };
       const dl = el("button","danger","곡 삭제"); dl.onclick = () => { if (!confirm("정말 삭제하시겠습니까?")) return; store.remove("parts", p.id).catch(fail); };
+      if (!editing) { const pe = el("button",null,"파트 수정"); pe.onclick = () => { partEditing.add(p.id); renderParts(); }; menu.append(pe); }
       menu.append(le, dl);
       mb.onclick = e => { e.stopPropagation(); document.querySelectorAll(".moremenu").forEach(m => { if (m !== menu) m.hidden = true; }); menu.hidden = !menu.hidden; };
       menu.addEventListener("click", e => e.stopPropagation());
       mw.append(mb, menu); foot.append(mw);
-      const t = el("button", editing ? "submit" : "textbtn", editing ? "파트 확정" : "파트 수정");
-      t.onclick = () => {
-        if (editing) { partEditing.delete(p.id); store.update("parts", p.id, {locked:true}).catch(fail); }
-        else { partEditing.add(p.id); renderParts(); }
-      };
-      foot.append(t);
+      if (editing) {
+        const t = el("button","submit","파트 확정");
+        t.onclick = () => { partEditing.delete(p.id); store.update("parts", p.id, {locked:true}).catch(fail); };
+        foot.prepend(t);
+      }
     }
     if (foot.childElementCount) d.append(foot);
     d.append(ls); box.append(d);
@@ -1527,7 +1535,7 @@ function renderMembers(){
     box.dataset.key = key;
     box.innerHTML = "";
     const prof = kv.profiles || {};
-    const tc = el("div","mcard teamcard");
+    const tc = el("div","mcard teamcard"); tc.style.position = "relative"; tc.append(el("h3",null,"공식 채널"));
     const team = Array.isArray(prof.team) ? prof.team : TEAM_SNS.map(([label, handle, url]) => ({label, handle, url}));
     if (profEditing.has("team") && writable()) {
       const rows = team.map(t => ({...t})), list = el("div","teamedit");
@@ -1565,12 +1573,12 @@ function renderMembers(){
       });
       if (!team.length) tl.append(el("span","muted","아직 팀 정보 없음"));
       tc.append(tl);
-      if (writable()) { const e = el("button","textbtn","수정"); e.style.justifySelf = "end"; e.onclick = () => { profEditing.add("team"); renderMembers(); }; tc.append(e); }
+      if (writable()) { const m = moreMenu([["수정", () => { profEditing.add("team"); renderMembers(); }]]); m.classList.add("cardmore"); tc.append(m); }
     }
     box.append(tc);
     /* 오피셜 사이트 관리 */
     const fan = prof.fan || {};
-    const oc = el("div","mcard officialcard");
+    const oc = el("div","mcard officialcard"); oc.style.position = "relative";
     const oh = el("div","ohead"); oh.append(el("h3",null,"오피셜 사이트 관리")); oc.append(oh);
     oc.append(el("p","muted ohint","팬에게 공개되는 내용이에요. 레귤레이션은 공지 탭의 레귤레이션 글이 자동으로 올라가요."));
     if (profEditing.has("fan") && writable()) {
@@ -1611,7 +1619,7 @@ function renderMembers(){
       sum.append(el("div",null,`촬영 규정  ${(fan.photo ?? DEFAULT_PHOTO).split("\n")[0]}`));
       sum.append(el("div",null,`직캠 모음  ${listId(fan.fancam) ? "재생목록 연결됨" : "아직 없음"}`));
       oc.append(sum);
-      if (writable()) { const e = el("button","textbtn","수정"); e.style.justifySelf = "end"; e.onclick = () => { profEditing.add("fan"); renderMembers(); }; oc.append(e); }
+      if (writable()) { const m = moreMenu([["수정", () => { profEditing.add("fan"); renderMembers(); }]]); m.classList.add("cardmore"); oc.append(m); }
     }
     box.append(oc);
     const lid = listId(prof.playlist ?? DEFAULT_PLAYLIST);
